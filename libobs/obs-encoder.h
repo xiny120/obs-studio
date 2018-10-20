@@ -253,7 +253,8 @@ struct obs_encoder_info {
 	 */
 	obs_properties_t *(*get_properties2)(void *data, void *type_data);
 
-	bool (*encode_texture)(void *data, gs_texture_t *texture, int64_t pts,
+	bool (*encode_texture)(void *data, gs_texture_t *texture,
+			uint64_t lock_key, int64_t pts,
 			struct encoder_packet *packet, bool *received_packet);
 };
 
