@@ -430,6 +430,9 @@ static void intitialize_audio_encoder(struct obs_encoder *encoder)
 
 static THREAD_LOCAL bool can_reroute = false;
 
+extern bool init_gpu_encode(struct obs_encoder *encoder);
+extern void free_gpu_encode(struct obs_encoder *encoder);
+
 static inline bool obs_encoder_initialize_internal(obs_encoder_t *encoder)
 {
 	if (encoder_active(encoder))
@@ -438,6 +441,10 @@ static inline bool obs_encoder_initialize_internal(obs_encoder_t *encoder)
 		return true;
 
 	obs_encoder_shutdown(encoder);
+
+	if ((encoder->orig_info.caps & OBS_ENCODER_CAP_PASS_TEXTURE) != 0 &&
+	    !init_gpu_encode(encoder))
+		return false;
 
 	if (encoder->orig_info.create) {
 		can_reroute = true;
@@ -494,6 +501,9 @@ bool obs_encoder_initialize(obs_encoder_t *encoder)
 void obs_encoder_shutdown(obs_encoder_t *encoder)
 {
 	pthread_mutex_lock(&encoder->init_mutex);
+
+	free_gpu_encode(encoder);
+
 	if (encoder->context.data) {
 		encoder->info.destroy(encoder->context.data);
 		encoder->context.data    = NULL;
@@ -502,6 +512,7 @@ void obs_encoder_shutdown(obs_encoder_t *encoder)
 		encoder->offset_usec     = 0;
 		encoder->start_ts        = 0;
 	}
+
 	pthread_mutex_unlock(&encoder->init_mutex);
 }
 
@@ -834,7 +845,7 @@ static inline void send_packet(struct obs_encoder *encoder,
 		cb->new_packet(cb->param, packet);
 }
 
-static void full_stop(struct obs_encoder *encoder)
+void full_stop(struct obs_encoder *encoder)
 {
 	if (encoder) {
 		pthread_mutex_lock(&encoder->callbacks_mutex);
@@ -879,8 +890,7 @@ void send_off_encoder_packet(obs_encoder_t *encoder, bool success,
 }
 
 static const char *do_encode_name = "do_encode";
-static inline void do_encode(struct obs_encoder *encoder,
-		struct encoder_frame *frame)
+void do_encode(struct obs_encoder *encoder, struct encoder_frame *frame)
 {
 	profile_start(do_encode_name);
 	if (!encoder->profile_encoder_encode_name)
