@@ -402,6 +402,11 @@ static inline bool queue_frame(struct obs_core_video *video, bool raw_active,
 				&video->gpu_encoder_queue,
 				video->gpu_encoder_queue.size - sizeof(*tf));
 
+		/* texture-based encoding is stopping */
+		if (!tf) {
+			return false;
+		}
+
 		tf->count++;
 		os_sem_post(video->gpu_encode_semaphore);
 		goto finish;
