@@ -22,6 +22,7 @@ static void *gpu_encode_thread(void *unused)
 	struct obs_core_video *video = &obs->video;
 	uint64_t interval = video_output_get_frame_time(obs->video.video);
 	DARRAY(obs_encoder_t *) encoders;
+	int wait_frames = NUM_ENCODE_TEXTURE_FRAMES_TO_WAIT;
 
 	UNUSED_PARAMETER(unused);
 	da_init(encoders);
@@ -37,6 +38,11 @@ static void *gpu_encode_thread(void *unused)
 
 		if (os_atomic_load_bool(&video->gpu_encode_stop))
 			break;
+
+		if (wait_frames) {
+			wait_frames--;
+			continue;
+		}
 
 		/* -------------- */
 
