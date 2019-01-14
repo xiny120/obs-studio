@@ -391,17 +391,20 @@ end:
 }
 
 #ifdef _WIN32
-static inline void queue_frame(struct obs_core_video *video, bool raw_active,
+static inline bool queue_frame(struct obs_core_video *video, bool raw_active,
 		struct obs_vframe_info *vframe_info, int prev_texture)
 {
-	if (!video->gpu_encoder_avail_queue.size) {
+	bool duplicate = !video->gpu_encoder_avail_queue.size ||
+		(video->gpu_encoder_queue.size && vframe_info->count > 1);
+
+	if (duplicate) {
 		struct obs_tex_frame *tf = circlebuf_data(
 				&video->gpu_encoder_queue,
 				video->gpu_encoder_queue.size - sizeof(*tf));
 
 		tf->count++;
 		os_sem_post(video->gpu_encode_semaphore);
-		return;
+		goto finish;
 	}
 
 	struct obs_tex_frame tf;
@@ -412,7 +415,11 @@ static inline void queue_frame(struct obs_core_video *video, bool raw_active,
 		tf.released = false;
 	}
 
-	if (raw_active) {
+	/* the vframe_info->count > 1 case causing a copy can only happen if by
+	 * some chance the very first frame has to be duplicated for whatever
+	 * reason.  otherwise, it goes to the 'duplicate' case above, which
+	 * will ensure better performance. */
+	if (raw_active || vframe_info->count > 1) {
 		gs_copy_texture(tf.tex, video->convert_textures[prev_texture]);
 	} else {
 		gs_texture_t *tex = video->convert_textures[prev_texture];
@@ -433,6 +440,9 @@ static inline void queue_frame(struct obs_core_video *video, bool raw_active,
 	circlebuf_push_back(&video->gpu_encoder_queue, &tf, sizeof(tf));
 
 	os_sem_post(video->gpu_encode_semaphore);
+
+finish:
+	return --vframe_info->count;
 }
 
 extern void full_stop(struct obs_encoder *encoder);
@@ -440,8 +450,7 @@ extern void full_stop(struct obs_encoder *encoder);
 static inline void encode_gpu(struct obs_core_video *video, bool raw_active,
 		struct obs_vframe_info *vframe_info, int prev_texture)
 {
-	for (int i = 0; i < vframe_info->count; i++)
-		queue_frame(video, raw_active, vframe_info, prev_texture);
+	while (queue_frame(video, raw_active, vframe_info, prev_texture));
 }
 
 static const char *output_gpu_encoders_name = "output_gpu_encoders";
