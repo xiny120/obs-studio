@@ -2356,7 +2356,7 @@ void stop_gpu_encode(obs_encoder_t *encoder)
 	if (!video->gpu_encoders.num)
 		call_free = true;
 	pthread_mutex_unlock(&video->gpu_encoder_mutex);
-	if (free_gpu_encoding)
+	if (call_free)
 		free_gpu_encoding(video);
 	obs_leave_graphics();
 }
