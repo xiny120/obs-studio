@@ -180,7 +180,7 @@ bool init_gpu_encoding(struct obs_core_video *video)
 #endif
 }
 
-void free_gpu_encoding(struct obs_core_video *video)
+void stop_gpu_encoding_thread(struct obs_core_video *video)
 {
 	if (video->gpu_encode_thread_initialized) {
 		os_atomic_set_bool(&video->gpu_encode_stop, true);
@@ -188,6 +188,10 @@ void free_gpu_encoding(struct obs_core_video *video)
 		pthread_join(video->gpu_encode_thread, NULL);
 		video->gpu_encode_thread_initialized = false;
 	}
+}
+
+void free_gpu_encoding(struct obs_core_video *video)
+{
 	if (video->gpu_encode_semaphore) {
 		os_sem_destroy(video->gpu_encode_semaphore);
 		video->gpu_encode_semaphore = NULL;

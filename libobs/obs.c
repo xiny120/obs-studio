@@ -2314,6 +2314,7 @@ obs_data_t *obs_get_private_data(void)
 }
 
 extern bool init_gpu_encoding(struct obs_core_video *video);
+extern void stop_gpu_encoding_thread(struct obs_core_video *video);
 extern void free_gpu_encoding(struct obs_core_video *video);
 
 bool start_gpu_encode(obs_encoder_t *encoder)
@@ -2350,15 +2351,21 @@ void stop_gpu_encode(obs_encoder_t *encoder)
 	os_atomic_dec_long(&video->gpu_encoder_active);
 	video_output_dec_texture_encoders(video->video);
 
-	obs_enter_graphics();
 	pthread_mutex_lock(&video->gpu_encoder_mutex);
 	da_erase_item(video->gpu_encoders, &encoder);
 	if (!video->gpu_encoders.num)
 		call_free = true;
 	pthread_mutex_unlock(&video->gpu_encoder_mutex);
-	if (call_free)
+
+	if (call_free) {
+		stop_gpu_encoding_thread(video);
+
+		obs_enter_graphics();
+		pthread_mutex_lock(&video->gpu_encoder_mutex);
 		free_gpu_encoding(video);
-	obs_leave_graphics();
+		pthread_mutex_unlock(&video->gpu_encoder_mutex);
+		obs_leave_graphics();
+	}
 }
 
 bool obs_video_active(void)
