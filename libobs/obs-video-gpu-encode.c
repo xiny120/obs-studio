@@ -98,12 +98,14 @@ static void *gpu_encode_thread(void *unused)
 					&pkt, &received);
 			send_off_encoder_packet(encoder, success, received,
 					&pkt);
-			obs_encoder_release(encoder);
 
 			lock_key = next_key;
 
 			encoder->cur_pts += encoder->timebase_num;
 		}
+
+		for (size_t i = 0; i < encoders.num; i++)
+			obs_encoder_release(encoders.array[i]);
 
 		da_resize(encoders, 0);
 
