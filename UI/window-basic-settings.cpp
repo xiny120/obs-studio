@@ -3521,6 +3521,17 @@ void OBSBasicSettings::on_advOutEncoder_currentIndexChanged(int idx)
 			loadSettings ? "streamEncoder.json" : nullptr, true);
 	ui->advOutputStreamTab->layout()->addWidget(streamEncoderProps);
 
+	uint32_t caps = obs_get_encoder_caps(QT_TO_UTF8(encoder));
+
+	if (caps & OBS_ENCODER_CAP_PASS_TEXTURE) {
+		ui->advOutUseRescale->setChecked(false);
+		ui->advOutUseRescale->setEnabled(false);
+		ui->advOutRescale->setEnabled(false);
+	} else {
+		ui->advOutUseRescale->setEnabled(true);
+		ui->advOutRescale->setEnabled(true);
+	}
+
 	UNUSED_PARAMETER(idx);
 }
 
@@ -3546,6 +3557,17 @@ void OBSBasicSettings::on_advOutRecEncoder_currentIndexChanged(int idx)
 		ui->advOutRecStandard->layout()->addWidget(recordEncoderProps);
 		connect(recordEncoderProps, SIGNAL(Changed()),
 				this, SLOT(AdvReplayBufferChanged()));
+
+		uint32_t caps = obs_get_encoder_caps(QT_TO_UTF8(encoder));
+
+		if (caps & OBS_ENCODER_CAP_PASS_TEXTURE) {
+			ui->advOutRecUseRescale->setChecked(false);
+			ui->advOutRecUseRescale->setEnabled(false);
+			ui->advOutRecRescale->setEnabled(false);
+		} else {
+			ui->advOutRecUseRescale->setEnabled(true);
+			ui->advOutRecRescale->setEnabled(true);
+		}
 	}
 }
 
