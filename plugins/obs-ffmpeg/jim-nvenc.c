@@ -502,12 +502,17 @@ static bool init_encoder(struct nvenc_data *enc, obs_data_t *settings)
 	     "\theight:       %d\n"
 	     "\t2-pass:       %s\n"
 	     "\tb-frames:     %d\n"
+	     "\tlookahead:    %s\n"
+	     "\tpsycho_aq:    %s\n"
 	     "\tGPU:          %d\n",
 	     rc, bitrate, cqp, gop_size,
 	     preset, profile,
 	     enc->cx, enc->cy,
 	     twopass ? "true" : "false",
-	     bf, gpu);
+	     bf,
+	     lookahead ? "true" : "false",
+	     psycho_aq ? "true" : "false",
+	     gpu);
 
 	return true;
 }
