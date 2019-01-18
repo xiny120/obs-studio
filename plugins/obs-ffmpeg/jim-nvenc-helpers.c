@@ -7,7 +7,7 @@ static pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
 NV_ENCODE_API_FUNCTION_LIST nv = {NV_ENCODE_API_FUNCTION_LIST_VER};
 NV_CREATE_INSTANCE_FUNC nv_create_instance = NULL;
 
-static bool load_nvenc_lib(void)
+bool load_nvenc_lib(void)
 {
 	if (sizeof(void*) == 8) {
 		nvenc_lib = os_dlopen("nvEncodeAPI64.dll");
@@ -125,10 +125,6 @@ extern struct obs_encoder_info nvenc_info;
 void jim_nvenc_load(void)
 {
 	pthread_mutex_init(&init_mutex, NULL);
-
-	if (!load_nvenc_lib())
-		return;
-
 	obs_register_encoder(&nvenc_info);
 }
 

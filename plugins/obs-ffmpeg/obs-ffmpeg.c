@@ -10,6 +10,7 @@
 #ifdef _WIN32
 #include <dxgi.h>
 #include <util/dstr.h>
+#include <util/windows/win-version.h>
 #endif
 
 OBS_DECLARE_MODULE()
@@ -222,6 +223,10 @@ finish:
 }
 #endif
 
+#ifdef _WIN32
+extern bool load_nvenc_lib(void);
+#endif
+
 static bool nvenc_supported(void)
 {
 	av_register_all();
@@ -237,14 +242,12 @@ static bool nvenc_supported(void)
 	}
 
 #if defined(_WIN32)
-	if (sizeof(void*) == 8) {
-		lib = os_dlopen("nvEncodeAPI64.dll");
-	} else {
-		lib = os_dlopen("nvEncodeAPI.dll");
-	}
-
 	if (!nvenc_device_available()) {
 		goto cleanup;
+	}
+	if (load_nvenc_lib()) {
+		success = true;
+		goto finish;
 	}
 #else
 	lib = os_dlopen("libnvidia-encode.so.1");
@@ -258,6 +261,7 @@ cleanup:
 	if (lib)
 		os_dlclose(lib);
 	profile_end(nvenc_check_name);
+finish:
 	return success;
 }
 
@@ -292,10 +296,14 @@ bool obs_module_load(void)
 #ifndef __APPLE__
 	if (nvenc_supported()) {
 		blog(LOG_INFO, "NVENC supported");
-		obs_register_encoder(&nvenc_encoder_info);
 #ifdef _WIN32
-		jim_nvenc_load();
+		if (get_win_ver_int() > 0x0601) {
+			jim_nvenc_load();
+		} else {
+			nvenc_encoder_info.id = "ffmpeg_nvenc";
+		}
 #endif
+		obs_register_encoder(&nvenc_encoder_info);
 	}
 #if !defined(_WIN32) && defined(LIBAVUTIL_VAAPI_AVAILABLE)
 	if (vaapi_supported()) {
