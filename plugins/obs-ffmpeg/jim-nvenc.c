@@ -450,7 +450,7 @@ static bool init_encoder(struct nvenc_data *enc, obs_data_t *settings)
 	if (astrcmpi(rc, "cqp") == 0) {
 		config->rcParams.targetQuality = cqp;
 		config->rcParams.averageBitRate = 0;
-		config->rcParams.maxBitRate = 40000000;
+		config->rcParams.maxBitRate = 0;
 
 	} else if (astrcmpi(rc, "lossless") == 0) {
 		config->rcParams.rateControlMode = NV_ENC_PARAMS_RC_CONSTQP;
