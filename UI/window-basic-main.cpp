@@ -1164,8 +1164,6 @@ bool OBSBasic::InitBasicConfigDefaults()
 			"flv");
 	config_set_default_uint  (basicConfig, "SimpleOutput", "VBitrate",
 			2500);
-	config_set_default_string(basicConfig, "SimpleOutput", "StreamEncoder",
-			SIMPLE_ENCODER_X264);
 	config_set_default_uint  (basicConfig, "SimpleOutput", "ABitrate", 160);
 	config_set_default_bool  (basicConfig, "SimpleOutput", "UseAdvanced",
 			false);
@@ -1175,8 +1173,6 @@ bool OBSBasic::InitBasicConfigDefaults()
 			"veryfast");
 	config_set_default_string(basicConfig, "SimpleOutput", "RecQuality",
 			"Stream");
-	config_set_default_string(basicConfig, "SimpleOutput", "RecEncoder",
-			SIMPLE_ENCODER_X264);
 	config_set_default_bool(basicConfig, "SimpleOutput", "RecRB", false);
 	config_set_default_int(basicConfig, "SimpleOutput", "RecRBTime", 20);
 	config_set_default_int(basicConfig, "SimpleOutput", "RecRBSize", 512);
@@ -1301,6 +1297,20 @@ bool OBSBasic::InitBasicConfigDefaults()
 	config_set_default_uint  (basicConfig, "Audio", "PeakMeterType", 0);
 
 	return true;
+}
+
+extern bool EncoderAvailable(const char *encoder);
+
+void OBSBasic::InitBasicConfigDefaults2()
+{
+	bool oldEncDefaults = config_get_bool(App()->GlobalConfig(),
+			"General", "Pre23Defaults");
+	bool useNV = EncoderAvailable("ffmpeg_nvenc") && !oldEncDefaults;
+
+	config_set_default_string(basicConfig, "SimpleOutput", "StreamEncoder",
+			useNV ? SIMPLE_ENCODER_NVENC : SIMPLE_ENCODER_X264);
+	config_set_default_string(basicConfig, "SimpleOutput", "RecEncoder",
+			useNV ? SIMPLE_ENCODER_NVENC : SIMPLE_ENCODER_X264);
 }
 
 bool OBSBasic::InitBasicConfig()
@@ -1533,6 +1543,8 @@ void OBSBasic::OBSInit()
 #if defined(_WIN32) && defined(BROWSER_AVAILABLE)
 	create_browser_widget = obs_browser_init_panel();
 #endif
+
+	InitBasicConfigDefaults2();
 
 	CheckForSimpleModeX264Fallback();
 
