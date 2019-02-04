@@ -260,8 +260,8 @@ static bool nvenc_supported(void)
 cleanup:
 	if (lib)
 		os_dlclose(lib);
-	profile_end(nvenc_check_name);
 finish:
+	profile_end(nvenc_check_name);
 	return success;
 }
 
