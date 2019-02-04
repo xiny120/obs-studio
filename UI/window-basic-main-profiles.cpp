@@ -232,6 +232,7 @@ bool OBSBasic::AddProfile(bool create_new, const char *title, const char *text,
 	config.SaveSafe("tmp");
 	config.Swap(basicConfig);
 	InitBasicConfigDefaults();
+	InitBasicConfigDefaults2();
 	RefreshProfiles();
 
 	if (create_new)
@@ -448,6 +449,7 @@ void OBSBasic::on_actionRemoveProfile_triggered()
 
 	config.Swap(basicConfig);
 	InitBasicConfigDefaults();
+	InitBasicConfigDefaults2();
 	ResetProfileData();
 	DeleteProfile(oldName.c_str(), oldDir.c_str());
 	RefreshProfiles();
@@ -605,6 +607,7 @@ void OBSBasic::ChangeProfile()
 
 	config.Swap(basicConfig);
 	InitBasicConfigDefaults();
+	InitBasicConfigDefaults2();
 	ResetProfileData();
 	RefreshProfiles();
 	config_save_safe(App()->GlobalConfig(), "tmp", nullptr);
