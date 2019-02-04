@@ -3510,16 +3510,17 @@ void OBSBasicSettings::on_advOutFFPathBrowse_clicked()
 
 void OBSBasicSettings::on_advOutEncoder_currentIndexChanged(int idx)
 {
-	if (loading)
-		return;
-
 	QString encoder = GetComboData(ui->advOutEncoder);
-	bool loadSettings = encoder == curAdvStreamEncoder;
+	if (!loading) {
+		bool loadSettings = encoder == curAdvStreamEncoder;
 
-	delete streamEncoderProps;
-	streamEncoderProps = CreateEncoderPropertyView(QT_TO_UTF8(encoder),
-			loadSettings ? "streamEncoder.json" : nullptr, true);
-	ui->advOutputStreamTab->layout()->addWidget(streamEncoderProps);
+		delete streamEncoderProps;
+		streamEncoderProps = CreateEncoderPropertyView(
+				QT_TO_UTF8(encoder),
+				loadSettings ? "streamEncoder.json" : nullptr,
+				true);
+		ui->advOutputStreamTab->layout()->addWidget(streamEncoderProps);
+	}
 
 	uint32_t caps = obs_get_encoder_caps(QT_TO_UTF8(encoder));
 
@@ -3537,19 +3538,22 @@ void OBSBasicSettings::on_advOutEncoder_currentIndexChanged(int idx)
 
 void OBSBasicSettings::on_advOutRecEncoder_currentIndexChanged(int idx)
 {
-	if (loading)
+	if (!loading) {
+		ui->advOutRecUseRescale->setEnabled(idx > 0);
+		ui->advOutRecRescaleContainer->setEnabled(idx > 0);
+
+		delete recordEncoderProps;
+		recordEncoderProps = nullptr;
+	}
+
+	if (idx <= 0) {
 		return;
+	}
 
-	ui->advOutRecUseRescale->setEnabled(idx > 0);
-	ui->advOutRecRescaleContainer->setEnabled(idx > 0);
+	QString encoder = GetComboData(ui->advOutRecEncoder);
+	bool loadSettings = encoder == curAdvRecordEncoder;
 
-	delete recordEncoderProps;
-	recordEncoderProps = nullptr;
-
-	if (idx > 0) {
-		QString encoder = GetComboData(ui->advOutRecEncoder);
-		bool loadSettings = encoder == curAdvRecordEncoder;
-
+	if (!loading) {
 		recordEncoderProps = CreateEncoderPropertyView(
 				QT_TO_UTF8(encoder),
 				loadSettings ? "recordEncoder.json" : nullptr,
@@ -3557,17 +3561,17 @@ void OBSBasicSettings::on_advOutRecEncoder_currentIndexChanged(int idx)
 		ui->advOutRecStandard->layout()->addWidget(recordEncoderProps);
 		connect(recordEncoderProps, SIGNAL(Changed()),
 				this, SLOT(AdvReplayBufferChanged()));
+	}
 
-		uint32_t caps = obs_get_encoder_caps(QT_TO_UTF8(encoder));
+	uint32_t caps = obs_get_encoder_caps(QT_TO_UTF8(encoder));
 
-		if (caps & OBS_ENCODER_CAP_PASS_TEXTURE) {
-			ui->advOutRecUseRescale->setChecked(false);
-			ui->advOutRecUseRescale->setEnabled(false);
-			ui->advOutRecRescale->setEnabled(false);
-		} else {
-			ui->advOutRecUseRescale->setEnabled(true);
-			ui->advOutRecRescale->setEnabled(true);
-		}
+	if (caps & OBS_ENCODER_CAP_PASS_TEXTURE) {
+		ui->advOutRecUseRescale->setChecked(false);
+		ui->advOutRecUseRescale->setEnabled(false);
+		ui->advOutRecRescale->setEnabled(false);
+	} else {
+		ui->advOutRecUseRescale->setEnabled(true);
+		ui->advOutRecRescale->setEnabled(true);
 	}
 }
 
