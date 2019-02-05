@@ -615,7 +615,9 @@ static void nvenc_destroy(void *data)
 	}
 	for (size_t i = 0; i < enc->input_textures.num; i++) {
 		ID3D11Texture2D *tex = enc->input_textures.array[i].tex;
+		IDXGIKeyedMutex *km = enc->input_textures.array[i].km;
 		tex->lpVtbl->Release(tex);
+		km->lpVtbl->Release(km);
 	}
 	if (enc->context) {
 		enc->context->lpVtbl->Release(enc->context);
