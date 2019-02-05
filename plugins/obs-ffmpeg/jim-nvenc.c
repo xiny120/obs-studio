@@ -585,7 +585,7 @@ static void *nvenc_create(obs_data_t *settings, obs_encoder_t *encoder)
 
 fail:
 	nvenc_destroy(enc);
-	return obs_encoder_create_rerouted(encoder, "actual_ffmpeg_nvenc");
+	return obs_encoder_create_rerouted(encoder, "ffmpeg_nvenc");
 }
 
 static bool get_encoded_packet(struct nvenc_data *enc, bool finalize);
@@ -904,7 +904,7 @@ static bool nvenc_sei_data(void *data, uint8_t **sei, size_t *size)
 }
 
 struct obs_encoder_info nvenc_info = {
-	.id                      = "ffmpeg_nvenc",
+	.id                      = "jim_nvenc",
 	.codec                   = "h264",
 	.type                    = OBS_ENCODER_VIDEO,
 	.caps                    = OBS_ENCODER_CAP_PASS_TEXTURE,

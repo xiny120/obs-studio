@@ -299,8 +299,6 @@ bool obs_module_load(void)
 #ifdef _WIN32
 		if (get_win_ver_int() > 0x0601) {
 			jim_nvenc_load();
-		} else {
-			nvenc_encoder_info.id = "ffmpeg_nvenc";
 		}
 #endif
 		obs_register_encoder(&nvenc_encoder_info);

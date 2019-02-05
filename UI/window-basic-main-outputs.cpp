@@ -302,7 +302,7 @@ void SimpleOutput::LoadRecordingPreset()
 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
 			LoadRecordingPreset_h264("amd_amf_h264");
 		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0) {
-			LoadRecordingPreset_h264("ffmpeg_nvenc");
+			LoadRecordingPreset_h264("jim_nvenc");
 		}
 		usingRecordingPreset = true;
 
@@ -322,7 +322,7 @@ SimpleOutput::SimpleOutput(OBSBasic *main_) : BasicOutputHandler(main_)
 	else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0)
 		LoadStreamingPreset_h264("amd_amf_h264");
 	else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0)
-		LoadStreamingPreset_h264("ffmpeg_nvenc");
+		LoadStreamingPreset_h264("jim_nvenc");
 	else
 		LoadStreamingPreset_h264("obs_x264");
 
