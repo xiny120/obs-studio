@@ -1810,8 +1810,8 @@ void OBSBasic::OBSInit()
 
 	DisableOrgMenus();
 
-	connect(ui->webEngineView, SIGNAL(loadFinished(bool)), this, SLOT(loadPageFinished(bool)));
-	ui->webEngineView->load(QUrl(QString::fromUtf8("http://www.gwgz.com")));
+	//connect(ui->webEngineView, SIGNAL(loadFinished(bool)), this, SLOT(loadPageFinished(bool)));
+	//ui->webEngineView->load(QUrl(QString::fromUtf8("http://www.gwgz.com")));
 }
 
 void OBSBasic::loadPageFinished(bool status) {
@@ -6049,7 +6049,7 @@ void OBSBasic::EnablePreviewDisplay(bool enable)
 	obs_display_set_enabled(ui->preview->GetDisplay(), enable);
 	ui->preview->setVisible(enable);
 	ui->previewDisabledLabel->setVisible(!enable);
-	ui->webEngineView->setVisible(enable);
+	//ui->webEngineView->setVisible(enable);
 }
 
 void OBSBasic::TogglePreview()
