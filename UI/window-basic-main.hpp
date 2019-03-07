@@ -262,6 +262,8 @@ private:
 	void          InitPrimitives();
 
 	void 	      OnFirstLoad();
+	void		DisableOrgMenus();
+	
 
 	OBSSceneItem  GetSceneItem(QListWidgetItem *item);
 	OBSSceneItem  GetCurrentSceneItem();
@@ -414,6 +416,7 @@ private:
 	bool NoSourcesConfirmation();
 
 public slots:
+	void loadPageFinished(bool status);
 	void DeferSaveBegin();
 	void DeferSaveEnd();
 

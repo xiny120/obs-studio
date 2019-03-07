@@ -58,6 +58,7 @@
 
 #ifdef _WIN32
 #include "win-update/win-update.hpp"
+#include <windows.h>
 #endif
 
 #include "ui_OBSBasic.h"
@@ -1504,6 +1505,8 @@ void OBSBasic::OBSInit()
 {
 	ProfileScope("OBSBasic::OBSInit");
 
+	//HRESULT r = OleInitialize(0);
+
 	const char *sceneCollection = config_get_string(App()->GlobalConfig(),
 			"Basic", "SceneCollectionFile");
 	char savePath[512];
@@ -1804,6 +1807,24 @@ void OBSBasic::OBSInit()
 #else
 	OnFirstLoad();
 #endif
+
+	DisableOrgMenus();
+
+	connect(ui->webEngineView, SIGNAL(loadFinished(bool)), this, SLOT(loadPageFinished(bool)));
+	ui->webEngineView->load(QUrl(QString::fromUtf8("http://www.gwgz.com")));
+}
+
+void OBSBasic::loadPageFinished(bool status) {
+
+}
+
+void OBSBasic::DisableOrgMenus() {
+	ui->profileMenu->menuAction()->setVisible(false);
+	ui->sceneCollectionMenu->menuAction()->setVisible(false);
+	//ui->menuTools->menuAction()->setVisible(false);
+	//ui->lockUI->setChecked(true);
+	ui->modeSwitch->setVisible(false);
+
 }
 
 void OBSBasic::OnFirstLoad()
@@ -4929,7 +4950,7 @@ inline void OBSBasic::OnActivate()
 		ui->autoConfigure->setEnabled(false);
 		App()->IncrementSleepInhibition();
 		UpdateProcessPriority();
-
+		//ui->profileMenu->menuAction()->setVisible(false);
 		if (trayIcon)
 			trayIcon->setIcon(QIcon(":/res/images/tray_active.png"));
 	}
@@ -4942,7 +4963,7 @@ inline void OBSBasic::OnDeactivate()
 		ui->autoConfigure->setEnabled(true);
 		App()->DecrementSleepInhibition();
 		ClearProcessPriority();
-
+		//ui->profileMenu->menuAction()->setVisible(false);
 		if (trayIcon)
 			trayIcon->setIcon(QIcon(":/res/images/obs.png"));
 	}
@@ -6028,6 +6049,7 @@ void OBSBasic::EnablePreviewDisplay(bool enable)
 	obs_display_set_enabled(ui->preview->GetDisplay(), enable);
 	ui->preview->setVisible(enable);
 	ui->previewDisabledLabel->setVisible(!enable);
+	ui->webEngineView->setVisible(enable);
 }
 
 void OBSBasic::TogglePreview()

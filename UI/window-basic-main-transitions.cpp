@@ -1189,6 +1189,7 @@ void OBSBasic::EnableQuickTransitionWidgets()
 
 void OBSBasic::SetPreviewProgramMode(bool enabled)
 {
+	enabled = false;
 	if (IsPreviewProgramMode() == enabled)
 		return;
 

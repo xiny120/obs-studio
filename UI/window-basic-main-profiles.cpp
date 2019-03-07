@@ -351,6 +351,7 @@ void OBSBasic::RefreshProfiles()
 	EnumProfiles(addProfile);
 
 	ui->actionRemoveProfile->setEnabled(count > 1);
+	
 }
 
 void OBSBasic::ResetProfileData()
