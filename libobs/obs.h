@@ -1526,7 +1526,7 @@ EXPORT const char *obs_output_get_display_name(const char *id);
  * directshow, or other custom outputs.
  */
 EXPORT obs_output_t *obs_output_create(const char *id, const char *name,
-		obs_data_t *settings, obs_data_t *hotkey_data);
+	obs_data_t *settings, obs_data_t *hotkey_data);// , char* sid = 0, char* token = 0);
 
 /**
  * Adds/releases a reference to an output.  When the last reference is

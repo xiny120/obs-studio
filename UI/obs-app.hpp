@@ -48,6 +48,13 @@ public:
 	operator lexer*() {return &lex;}
 };
 
+struct Userinfo {
+public:
+	QString UserName;
+	QString SessionId;
+	QString Token;
+};
+
 class OBSTranslator : public QTranslator {
 	Q_OBJECT
 
@@ -94,6 +101,8 @@ private:
 			const char *name, uint32_t color);
 
 public:
+
+	Userinfo ui;
 	OBSApp(int &argc, char **argv, profiler_name_store_t *store);
 	~OBSApp();
 

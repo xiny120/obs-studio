@@ -1483,8 +1483,14 @@ bool AdvancedOutput::StartStreaming(obs_service_t *service)
 		startStreaming.Disconnect();
 		stopStreaming.Disconnect();
 
-		streamOutput = obs_output_create(type, "adv_stream",
-				nullptr, nullptr);
+		//obs_data_t * result = (obs_data_t *)obs_data_create_from_json((char const *)App()->sessionjson);
+		obs_output_t* streamOutput_ = obs_output_create(type, "adv_stream",
+			nullptr, nullptr);// , App()->ui.SessionId.toStdString().c_str, App()->ui.Token.toStdString().c_str);
+		
+		//strcpy(streamOutput_sid, sid);
+		//strcpy(streamOutput_->token, token);
+		streamOutput = streamOutput_;
+		
 		if (!streamOutput) {
 			blog(LOG_WARNING, "Creation of stream output type '%s' "
 					"failed!", type);

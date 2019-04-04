@@ -179,6 +179,7 @@ set(obs_SOURCES
 	../deps/json11/json11.cpp
 	obs-app.cpp
 	api-interface.cpp
+	DlgLogin.cpp
 	window-basic-main.cpp
 	window-basic-stats.cpp
 	window-basic-filters.cpp
@@ -234,6 +235,7 @@ set(obs_HEADERS
 	../deps/json11/json11.hpp
 	obs-app.hpp
 	platform.hpp
+	DlgLogin.h
 	window-main.hpp
 	window-basic-main.hpp
 	window-basic-stats.hpp
@@ -299,6 +301,7 @@ set(obs_UI
 	forms/OBSBasicInteraction.ui
 	forms/OBSUpdate.ui
 	forms/OBSRemux.ui
+	forms/DlgLogin.ui
 	forms/OBSAbout.ui)
 
 set(obs_QRC
@@ -325,9 +328,12 @@ if(WIN32)
 			OUTPUT_NAME "obs${_output_suffix}")
 endif()
 
+find_package(Qt5Network REQUIRED)
+
 target_link_libraries(obs
 	libobs
 	Qt5::Widgets
+	Qt5::Network
 	obs-frontend-api
 	${FFMPEG_LIBRARIES}
 	${LIBCURL_LIBRARIES}

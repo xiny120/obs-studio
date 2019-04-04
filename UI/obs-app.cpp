@@ -41,6 +41,7 @@
 #include "window-basic-settings.hpp"
 #include "crash-report.hpp"
 #include "platform.hpp"
+#include "DlgLogin.h"
 
 #include <fstream>
 
@@ -1741,10 +1742,15 @@ run:
 			blog(LOG_INFO, "Command Line Arguments: %s", stor.str().c_str());
 		}
 
+		DlgLogin w;
+		if (w.exec() == QDialog::Rejected)
+			return 0;
+
 		if (!program.OBSInit())
 			return 0;
 
 		prof.Stop();
+
 
 		return program.exec();
 
