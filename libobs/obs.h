@@ -1651,6 +1651,8 @@ EXPORT size_t obs_output_get_mixers(const obs_output_t *output);
 EXPORT void obs_output_set_video_encoder(obs_output_t *output,
 		obs_encoder_t *encoder);
 
+EXPORT void obs_output_set_auth(obs_output_t *output,const char* sid,const char* token);
+
 /**
  * Sets the current audio encoder associated with this output,
  * required for encoded outputs.

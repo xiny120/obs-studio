@@ -802,7 +802,15 @@ static int try_connect(struct rtmp_stream *stream)
 		return OBS_OUTPUT_BAD_PATH;
 	}
 
-	info("Connecting to RTMP URL %s...", stream->path.array);
+	obs_output_t* op = stream->output;
+	op->sid;
+
+	info("Connecting to RTMP URL %s %s %s...", stream->path.array,op->sid,op->token);
+	char uri[1024] = { 0 };
+	sprintf(uri, "%s?sessionid=%s&token=%s", stream->path.array, op->sid, op->token);
+
+	dstr_free(&stream->path);
+	dstr_init_copy(&stream->path, uri);
 
 	RTMP_Init(&stream->rtmp);
 	if (!RTMP_SetupURL(&stream->rtmp, stream->path.array))

@@ -1,6 +1,7 @@
 #include <string>
 #include <algorithm>
 #include <QMessageBox>
+
 #include "qt-wrappers.hpp"
 #include "audio-encoders.hpp"
 #include "window-basic-main.hpp"
@@ -1487,9 +1488,9 @@ bool AdvancedOutput::StartStreaming(obs_service_t *service)
 		obs_output_t* streamOutput_ = obs_output_create(type, "adv_stream",
 			nullptr, nullptr);// , App()->ui.SessionId.toStdString().c_str, App()->ui.Token.toStdString().c_str);
 		
-		//strcpy(streamOutput_sid, sid);
-		//strcpy(streamOutput_->token, token);
+
 		streamOutput = streamOutput_;
+		streamOutput;
 		
 		if (!streamOutput) {
 			blog(LOG_WARNING, "Creation of stream output type '%s' "
@@ -1543,6 +1544,13 @@ bool AdvancedOutput::StartStreaming(obs_service_t *service)
 
 	obs_output_set_video_encoder(streamOutput, h264Streaming);
 	obs_output_set_audio_encoder(streamOutput, streamAudioEnc, 0);
+	//char sid[64] = { 0 };
+	//char token[64] = { 0 };
+	string sid = App()->ui.SessionId.toStdString();
+	string token = App()->ui.Token.toStdString();
+	//strncpy(sid, .c_str, 60);
+	//strncpy(token, App()->ui.Token.toStdString().c_str, 60);
+	obs_output_set_auth(streamOutput,sid.c_str(),token.c_str());
 
 	/* --------------------- */
 

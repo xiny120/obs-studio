@@ -1,4 +1,5 @@
 #include <obs-module.h>
+#include <obs-internal.h>
 #include <obs-avc.h>
 #include <util/platform.h>
 #include <util/circlebuf.h>

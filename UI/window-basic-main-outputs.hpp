@@ -2,7 +2,9 @@
 
 #include <string>
 
+
 class OBSBasic;
+struct obs_output;
 
 struct BasicOutputHandler {
 	OBSOutput              fileOutput;
