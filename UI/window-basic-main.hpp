@@ -57,6 +57,7 @@ class OBSBasicStats;
 #define AUX_AUDIO_3     Str("AuxAudioDevice3")
 #define AUX_AUDIO_4     Str("AuxAudioDevice4")
 
+#define SIMPLE_ENCODER_H264                    "h264"
 #define SIMPLE_ENCODER_X264                    "x264"
 #define SIMPLE_ENCODER_X264_LOWCPU             "x264_lowcpu"
 #define SIMPLE_ENCODER_QSV                     "qsv"

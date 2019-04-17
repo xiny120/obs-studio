@@ -42,6 +42,7 @@ class AutoConfig : public QWizard {
 	};
 
 	enum class Encoder {
+		h264,
 		x264,
 		NVENC,
 		QSV,

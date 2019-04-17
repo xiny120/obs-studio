@@ -4002,6 +4002,10 @@ void OBSBasicSettings::FillSimpleRecordingValues()
 	ADD_QUALITY("Lossless");
 
 	ui->simpleOutRecEncoder->addItem(
+		ENCODER_STR("Software"),
+		QString(SIMPLE_ENCODER_H264));
+
+	ui->simpleOutRecEncoder->addItem(
 			ENCODER_STR("Software"),
 			QString(SIMPLE_ENCODER_X264));
 	ui->simpleOutRecEncoder->addItem(
@@ -4024,6 +4028,10 @@ void OBSBasicSettings::FillSimpleRecordingValues()
 
 void OBSBasicSettings::FillSimpleStreamingValues()
 {
+	ui->simpleOutStrEncoder->addItem(
+		ENCODER_STR("Software"),
+		QString(SIMPLE_ENCODER_H264));
+
 	ui->simpleOutStrEncoder->addItem(
 			ENCODER_STR("Software"),
 			QString(SIMPLE_ENCODER_X264));

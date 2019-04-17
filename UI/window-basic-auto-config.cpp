@@ -917,6 +917,8 @@ inline const char *AutoConfig::GetEncoderId(Encoder enc)
 		return SIMPLE_ENCODER_QSV;
 	case Encoder::AMD:
 		return SIMPLE_ENCODER_AMD;
+	case Encoder::h264:
+		return SIMPLE_ENCODER_H264;
 	default:
 		return SIMPLE_ENCODER_X264;
 	}

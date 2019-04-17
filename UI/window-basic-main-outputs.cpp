@@ -310,6 +310,9 @@ void SimpleOutput::LoadRecordingPreset()
 		} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
 			LoadRecordingPreset_h264("obs_x264");
 			lowCPUx264 = true;
+		} else if (strcmp(encoder, SIMPLE_ENCODER_H264) == 0) {
+			LoadRecordingPreset_h264("ext_h264");
+			//lowCPUx264 = true;
 		} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
 			LoadRecordingPreset_h264("obs_qsv11");
 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
