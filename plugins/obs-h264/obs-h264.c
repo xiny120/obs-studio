@@ -20,6 +20,7 @@
 #include <util/darray.h>
 #include <util/platform.h>
 #include <obs-module.h>
+
 #include <codec_api.h>
 
 #ifndef _STDINT_H_INCLUDED
@@ -32,9 +33,44 @@
 #define info(format, ...)  do_log(LOG_INFO,    format, ##__VA_ARGS__)
 #define debug(format, ...) do_log(LOG_DEBUG,   format, ##__VA_ARGS__)
 
+
+typedef struct h264_param_t
+{
+	/* Video Properties */
+	int         i_width;
+	int         i_height;
+	int         i_csp;         /* CSP of encoded bitstream */
+	int         i_level_idc;
+	int         i_frame_total; /* number of frames to encode if known, else 0 */
+
+	/* Bitstream parameters */
+	int	    i_bitrate;
+	int         i_frame_reference;  /* Maximum number of reference frames */
+	int         i_dpb_size;         /* Force a DPB size larger than that implied by B-frames and reference frames.
+					 * Useful in combination with interactive error resilience. */
+	int         i_keyint_max;       /* Force an IDR keyframe at this interval */
+	int         i_keyint_min;       /* Scenecuts closer together than this are coded as I, not IDR. */
+	int         i_scenecut_threshold; /* how aggressively to insert extra I frames */
+	int         b_intra_refresh;    /* Whether or not to use periodic intra refresh instead of IDR frames. */
+
+	int         i_bframe;   /* how many b-frame between 2 references pictures */
+	int         i_bframe_adaptive;
+	int         i_bframe_bias;
+	int         i_bframe_pyramid;   /* Keep some B-frames as references: 0=off, 1=strict hierarchical, 2=normal */
+	int         b_open_gop;
+	int         b_bluray_compat;
+	int         i_avcintra_class;
+	int	i_fps_num;
+	int	i_fps_den;
+
+	void(*param_free)(void*);
+
+
+} h264_param_t;
+
 struct obs_h264 {
 	obs_encoder_t          *encoder;
-	void*           params;
+	h264_param_t           params;
 	ISVCEncoder                 *context;
 	DARRAY(uint8_t)        packet_data;
 	uint8_t                *extra_data;
@@ -42,6 +78,8 @@ struct obs_h264 {
 	size_t                 extra_data_size;
 	size_t                 sei_size;
 	os_performance_token_t *performance_token;
+	SFrameBSInfo sFbi;
+	SEncParamExt sSvcParam;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -78,7 +116,7 @@ static void obs_h264_destroy(void *data) {
 }
 
 static void obs_h264_defaults(obs_data_t *settings){
-	obs_data_set_default_int(settings, "bitrate", 2500);
+	obs_data_set_default_int(settings, "bitrate", 60000);
 	obs_data_set_default_bool(settings, "use_bufsize", false);
 	obs_data_set_default_int(settings, "buffer_size", 2500);
 	obs_data_set_default_int(settings, "keyint_sec", 0);
@@ -97,38 +135,31 @@ static inline void add_strings(obs_property_t *list, const char *const *strings)
 	}
 }
 
-static bool use_bufsize_modified(obs_properties_t *ppts, obs_property_t *p, obs_data_t *settings) {
-	bool use_bufsize = obs_data_get_bool(settings, "use_bufsize");
-	const char *rc = obs_data_get_string(settings, "rate_control");
-	bool rc_crf = astrcmpi(rc, "CRF") == 0;
-	p = obs_properties_get(ppts, "buffer_size");
-	obs_property_set_visible(p, use_bufsize && !rc_crf);
-	return true;
-}
+#define TEXT_BITRATE    obs_module_text("Bitrate")
+#define TEXT_FPS    obs_module_text("Fps")
+#define TEXT_X264_OPTS  obs_module_text("EncoderOptions")
 
-static bool rate_control_modified(obs_properties_t *ppts, obs_property_t *p, obs_data_t *settings){
-	const char *rc = obs_data_get_string(settings, "rate_control");
-	bool use_bufsize = obs_data_get_bool(settings, "use_bufsize");
-	bool abr = astrcmpi(rc, "CBR") == 0 || astrcmpi(rc, "ABR") == 0;
-	bool rc_crf = astrcmpi(rc, "CRF") == 0;
 
-	p = obs_properties_get(ppts, "crf");
-	obs_property_set_visible(p, !abr);
-
-	p = obs_properties_get(ppts, "bitrate");
-	obs_property_set_visible(p, !rc_crf);
-	p = obs_properties_get(ppts, "use_bufsize");
-	obs_property_set_visible(p, !rc_crf);
-	p = obs_properties_get(ppts, "buffer_size");
-	obs_property_set_visible(p, !rc_crf && use_bufsize);
-	return true;
-}
 
 static obs_properties_t *obs_h264_props(void *unused){
 	UNUSED_PARAMETER(unused);
 
 	obs_properties_t *props = obs_properties_create();
+	obs_property_t *list;
+	obs_property_t *p;
 
+
+
+	obs_properties_add_int(props, "bitrate", TEXT_BITRATE, 50, 10000000, 1);
+
+
+
+#ifdef ENABLE_VFR
+	obs_properties_add_bool(props, "vfr", TEXT_VFR);
+#endif
+
+	obs_properties_add_text(props, "x264opts", TEXT_X264_OPTS,
+		OBS_TEXT_DEFAULT);
 	return props;
 }
 
@@ -221,6 +252,11 @@ static inline void set_param(struct obs_h264 *obsx264, const char *param){
 			//	strcpy(name, "opencl");
 			//if (x264_param_parse(&obsx264->params, name, val) != 0)
 			//	warn("h264 param: %s failed", param);
+			printf("name");
+		}
+
+		if (strcmp(name, "fps") != 0) {
+
 		}
 
 		bfree(name);
@@ -306,80 +342,27 @@ static void update_params(struct obs_h264 *obsx264, obs_data_t *settings,
 	info.range = voi->range;
 
 	obs_h264_video_info(obsx264, &info);
+	
 
-	const char *rate_control = obs_data_get_string(settings, "rate_control");
 
 	int bitrate = (int)obs_data_get_int(settings, "bitrate");
-	int buffer_size = (int)obs_data_get_int(settings, "buffer_size");
-	int keyint_sec = (int)obs_data_get_int(settings, "keyint_sec");
-	int crf = (int)obs_data_get_int(settings, "crf");
 	int width = (int)obs_encoder_get_width(obsx264->encoder);
 	int height = (int)obs_encoder_get_height(obsx264->encoder);
-	int bf = (int)obs_data_get_int(settings, "bf");
 	bool use_bufsize = obs_data_get_bool(settings, "use_bufsize");
 	bool cbr_override = obs_data_get_bool(settings, "cbr");
-	enum rate_control rc;
 
-#ifdef ENABLE_VFR
-	bool vfr = obs_data_get_bool(settings, "vfr");
-#endif
-
-	/* XXX: "cbr" setting has been deprecated */
-	if (cbr_override) {
-		warn("\"cbr\" setting has been deprecated for all encoders!  "
-			"Please set \"rate_control\" to \"CBR\" instead.  "
-			"Forcing CBR mode.  "
-			"(Note to all: this is why you shouldn't use strings for "
-			"common settings)");
-		rate_control = "CBR";
-	}
-
-	if (astrcmpi(rate_control, "ABR") == 0) {
-		rc = RATE_CONTROL_ABR;
-		crf = 0;
-
-	}
-	else if (astrcmpi(rate_control, "VBR") == 0) {
-		rc = RATE_CONTROL_VBR;
-
-	}
-	else if (astrcmpi(rate_control, "CRF") == 0) {
-		rc = RATE_CONTROL_CRF;
-		bitrate = 0;
-		buffer_size = 0;
-
-	}
-	else { /* CBR */
-		rc = RATE_CONTROL_CBR;
-		crf = 0;
-	}
-	/*
-		if (keyint_sec)
-			obsx264->params.i_keyint_max =
-				keyint_sec * voi->fps_num / voi->fps_den;
-
-		if (!use_bufsize)
-			buffer_size = bitrate;
-
-	#ifdef ENABLE_VFR
-		obsx264->params.b_vfr_input          = vfr;
-	#else
-		obsx264->params.b_vfr_input          = false;
-	#endif
-		obsx264->params.rc.i_vbv_max_bitrate = bitrate;
-		obsx264->params.rc.i_vbv_buffer_size = buffer_size;
-		obsx264->params.rc.i_bitrate         = bitrate;
+		obsx264->params.i_bitrate         = bitrate;
 		obsx264->params.i_width              = width;
 		obsx264->params.i_height             = height;
 		obsx264->params.i_fps_num            = voi->fps_num;
 		obsx264->params.i_fps_den            = voi->fps_den;
-		obsx264->params.pf_log               = log_h264;
-		obsx264->params.p_log_private        = obsx264;
-		obsx264->params.i_log_level          = X264_LOG_WARNING;
+		//obsx264->params.pf_log               = log_h264;
+		//obsx264->params.p_log_private        = obsx264;
+		//obsx264->params.i_log_level          = H264_LOG_WARNING;
 
-		if (obs_data_has_user_value(settings, "bf"))
-			obsx264->params.i_bframe = bf;
-		*/
+		//if (obs_data_has_user_value(settings, "bf"))
+		//	obsx264->params.i_bframe = bf;
+		
 
 		//obsx264->params.vui.i_transfer =
 		//	get_x264_cs_val(info.colorspace, x264_transfer_names);
@@ -408,6 +391,7 @@ static void update_params(struct obs_h264 *obsx264, obs_data_t *settings,
 		 }
 
 		 obsx264->params.rc.f_rf_constant = (float)crf;
+		
 
 		 if (info.format == VIDEO_FORMAT_NV12)
 			 obsx264->params.i_csp = X264_CSP_NV12;
@@ -417,28 +401,12 @@ static void update_params(struct obs_h264 *obsx264, obs_data_t *settings,
 			 obsx264->params.i_csp = X264_CSP_I444;
 		 else
 			 obsx264->params.i_csp = X264_CSP_NV12;
+			  */
 
 		 while (*params)
 			 set_param(obsx264, *(params++));
 
-		 info("settings:\n"
-		      "\trate_control: %s\n"
-		      "\tbitrate:      %d\n"
-		      "\tbuffer size:  %d\n"
-		      "\tcrf:          %d\n"
-		      "\tfps_num:      %d\n"
-		      "\tfps_den:      %d\n"
-		      "\twidth:        %d\n"
-		      "\theight:       %d\n"
-		      "\tkeyint:       %d\n",
-		      rate_control,
-		      obsx264->params.rc.i_vbv_max_bitrate,
-		      obsx264->params.rc.i_vbv_buffer_size,
-		      (int)obsx264->params.rc.f_rf_constant,
-		      voi->fps_num, voi->fps_den,
-		      width, height,
-		      obsx264->params.i_keyint_max);
-		 */
+
 }
 
 static bool update_settings(struct obs_h264 *obsx264, obs_data_t *settings)
@@ -529,6 +497,76 @@ static void load_headers(struct obs_h264 *obsx264)
 	obsx264->sei_size = sei.num;
 }
 
+
+static int FillSpecificParameters(SEncParamExt* sParam,const h264_param_t* par) {
+	/* Test for temporal, spatial, SNR scalability */
+	sParam->iUsageType = SCREEN_CONTENT_REAL_TIME;
+	sParam->fMaxFrameRate = par->i_frame_reference;                // input frame rate
+	sParam->iPicWidth = par->i_width;                 // width of picture in samples
+	sParam->iPicHeight = par->i_height;                  // height of picture in samples
+	sParam->iTargetBitrate = par->i_bitrate;              // target bitrate desired
+	sParam->iMaxBitrate = par->i_bitrate * 130 / 100;
+	sParam->iRCMode = RC_QUALITY_MODE;      //  rc mode control
+	sParam->iTemporalLayerNum = 3;    // layer number at temporal level
+	sParam->iSpatialLayerNum = 1;    // layer number at spatial level
+	sParam->bEnableDenoise = 0;    // denoise control
+	sParam->bEnableBackgroundDetection = 1; // background detection control
+	sParam->bEnableAdaptiveQuant = 1; // adaptive quantization control
+	sParam->bEnableFrameSkip = 1; // frame skipping
+	sParam->bEnableLongTermReference = 0; // long term reference control
+	sParam->iLtrMarkPeriod = 30;
+	sParam->uiIntraPeriod = 320;           // period of Intra frame
+	sParam->eSpsPpsIdStrategy = INCREASING_ID;
+	sParam->bPrefixNalAddingCtrl = 0;
+	sParam->iComplexityMode = LOW_COMPLEXITY;
+	sParam->bSimulcastAVC = false;
+	int iIndexLayer = 0;
+	sParam->sSpatialLayers[iIndexLayer].uiProfileIdc = PRO_BASELINE;
+	sParam->sSpatialLayers[iIndexLayer].iVideoWidth = sParam->iPicWidth;
+	sParam->sSpatialLayers[iIndexLayer].iVideoHeight = sParam->iPicHeight;
+	sParam->sSpatialLayers[iIndexLayer].fFrameRate = sParam->fMaxFrameRate;
+	sParam->sSpatialLayers[iIndexLayer].iSpatialBitrate = sParam->iTargetBitrate;
+	sParam->sSpatialLayers[iIndexLayer].iMaxSpatialBitrate = sParam->iMaxBitrate;
+	sParam->sSpatialLayers[iIndexLayer].sSliceArgument.uiSliceMode = SM_SINGLE_SLICE;
+
+	++iIndexLayer;
+	sParam->sSpatialLayers[iIndexLayer].uiProfileIdc = PRO_SCALABLE_BASELINE;
+	sParam->sSpatialLayers[iIndexLayer].iVideoWidth = 320;
+	sParam->sSpatialLayers[iIndexLayer].iVideoHeight = 180;
+	sParam->sSpatialLayers[iIndexLayer].fFrameRate = 15.0f;
+	sParam->sSpatialLayers[iIndexLayer].iSpatialBitrate = 160000;
+	sParam->sSpatialLayers[iIndexLayer].iMaxSpatialBitrate = UNSPECIFIED_BIT_RATE;
+	sParam->sSpatialLayers[iIndexLayer].sSliceArgument.uiSliceMode = SM_SINGLE_SLICE;
+
+	++iIndexLayer;
+	sParam->sSpatialLayers[iIndexLayer].uiProfileIdc = PRO_SCALABLE_BASELINE;
+	sParam->sSpatialLayers[iIndexLayer].iVideoWidth = 640;
+	sParam->sSpatialLayers[iIndexLayer].iVideoHeight = 360;
+	sParam->sSpatialLayers[iIndexLayer].fFrameRate = 30.0f;
+	sParam->sSpatialLayers[iIndexLayer].iSpatialBitrate = 512000;
+	sParam->sSpatialLayers[iIndexLayer].iMaxSpatialBitrate = UNSPECIFIED_BIT_RATE;
+	sParam->sSpatialLayers[iIndexLayer].sSliceArgument.uiSliceMode = SM_SINGLE_SLICE;
+	sParam->sSpatialLayers[iIndexLayer].sSliceArgument.uiSliceNum = 1;
+
+	++iIndexLayer;
+	sParam->sSpatialLayers[iIndexLayer].uiProfileIdc = PRO_SCALABLE_BASELINE;
+	sParam->sSpatialLayers[iIndexLayer].iVideoWidth = 1280;
+	sParam->sSpatialLayers[iIndexLayer].iVideoHeight = 720;
+	sParam->sSpatialLayers[iIndexLayer].fFrameRate = 30.0f;
+	sParam->sSpatialLayers[iIndexLayer].iSpatialBitrate = 1500000;
+	sParam->sSpatialLayers[iIndexLayer].iMaxSpatialBitrate = UNSPECIFIED_BIT_RATE;
+	sParam->sSpatialLayers[iIndexLayer].sSliceArgument.uiSliceMode = SM_SINGLE_SLICE;
+	sParam->sSpatialLayers[iIndexLayer].sSliceArgument.uiSliceNum = 1;
+
+	float fMaxFr = sParam->sSpatialLayers[sParam->iSpatialLayerNum - 1].fFrameRate;
+	for (int32_t i = sParam->iSpatialLayerNum - 2; i >= 0; --i) {
+		if (sParam->sSpatialLayers[i].fFrameRate > fMaxFr + 1)
+			fMaxFr = sParam->sSpatialLayers[i].fFrameRate;
+	}
+	sParam->fMaxFrameRate = fMaxFr;
+
+}
+
 static void *obs_h264_create(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	struct obs_h264 *obsx264 = bzalloc(sizeof(struct obs_h264));
@@ -554,6 +592,24 @@ static void *obs_h264_create(obs_data_t *settings, obs_encoder_t *encoder)
 		bfree(obsx264);
 		return NULL;
 	}
+
+	memset(&obsx264->sFbi, 0, sizeof(SFrameBSInfo));
+	ISVCEncoder pPtrEnc = *obsx264->context;
+	pPtrEnc->GetDefaultParams(obsx264->context,&obsx264->sSvcParam);
+	
+	//obsx264->context->GetDefaultParams(&obsx264->sSvcParam);
+	
+
+	FillSpecificParameters(&obsx264->sSvcParam,&obsx264->params );
+	//pSrcPic = new SSourcePicture;
+	//if (pSrcPic == NULL) {
+	//	iRet = 1;
+	//	goto INSIDE_MEM_FREE;
+	//}
+	//fill default pSrcPic
+	//pSrcPic->iColorFormat = videoFormatI420;
+	//pSrcPic->uiTimeStamp = 0;
+
 
 	obsx264->performance_token =
 		os_request_high_performance("x264 encoding");
@@ -615,9 +671,8 @@ static inline void init_pic_data(struct obs_h264 *obsx264, x264_picture_t *pic,
 	*/
 }
 
-static bool obs_h264_encode(void *data, struct encoder_frame *frame,
-	struct encoder_packet *packet, bool *received_packet)
-{
+// data 表示参数 frame表示需要编码的原始数据。packet表示输出的编码码流。received_packet表示本帧数据是否有编码输出。
+static bool obs_h264_encode(void *data, struct encoder_frame *frame,struct encoder_packet *packet, bool *received_packet){
 	struct obs_h264 *obsx264 = data;
 	//x264_nal_t      *nals;
 	//int             nal_count;
