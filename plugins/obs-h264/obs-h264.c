@@ -26,7 +26,7 @@ extern "C" {
 #endif//__cplusplus
 
 #include <codec_api.h>
-#include <measure_time.h>
+//#include <measure_time.h>
 
 
 #ifdef __cplusplus
@@ -606,9 +606,9 @@ static bool obs_h264_encode(void *data, struct encoder_frame *frame, struct enco
 						packet->pts = obsx264->sFbi.uiTimeStamp * voi->fps_num / 1000;// *voi->fps_num / 90000;
 						packet->dts = packet->pts;// pBS->DecodeTimeStamp * fps_num / 90000;
 						packet->keyframe = obsx264->sFbi.eFrameType == videoFrameTypeIDR;// pic_out->b_keyframe != 0;
-						//warn("%d h264码流长度:%d[%d] s[%d] d[%d]\r\n",
-						//	(int)time(NULL), (int)packet->size,(int)obsx264->sFbi.eFrameType,
-					//		(int)frame->pts, (int)packet->pts);
+						warn("%d h264码流长度:%d[%d] s[%d] d[%d]\r\n",
+							(int)time(NULL), (int)packet->size,(int)obsx264->sFbi.eFrameType,
+							(int)frame->pts, (int)packet->pts);
 					//	fwrite(pLayerBsInfo->pBsBuf, 1, iLayerSize , obsx264->pFpBs); // write pure bit stream into file
 					}
 					else { //multi bs file write

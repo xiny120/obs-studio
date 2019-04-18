@@ -1060,6 +1060,7 @@ static bool add_caption(struct obs_output *output, struct encoder_packet *out)
 static inline void send_interleaved(struct obs_output *output)
 {
 	struct encoder_packet out = output->interleaved_packets.array[0];
+	blog(LOG_WARNING, "%d send_interleaved[%d][%d]:%d %d", (int)time(NULL),(int)out.type,(int)output->interleaved_packets.num, (int)out.dts, (int)out.pts);
 
 	/* do not send an interleaved packet if there's no packet of the
 	 * opposing type of a higher timestamp in the interleave buffer.
