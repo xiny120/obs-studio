@@ -223,13 +223,13 @@ static enum data_ret write_data(struct rtmp_stream *stream, bool *can_write,
 	}
 
 	/* finish writing for now */
-	if (stream->write_buf_len <= 1000)
+	if (stream->write_buf_len <= 100)
 		exit_loop = true;
 
 	pthread_mutex_unlock(&stream->write_buf_mutex);
 
 	if (delay_time)
-		os_sleep_ms(delay_time);
+		os_sleep_ms(0);// (delay_time);
 
 	return exit_loop ? RET_BREAK : RET_CONTINUE;
 }

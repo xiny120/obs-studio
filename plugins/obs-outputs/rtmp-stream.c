@@ -855,7 +855,7 @@ static int try_connect(struct rtmp_stream *stream)
 
 	stream->rtmp.m_outChunkSize       = 4096;
 	stream->rtmp.m_bSendChunkSizeInfo = true;
-	stream->rtmp.m_bUseNagle          = true;
+	stream->rtmp.m_bUseNagle          = false;
 
 #ifdef _WIN32
 	win32_log_interface_type(stream);
@@ -1145,7 +1145,7 @@ static void rtmp_stream_defaults(obs_data_t *defaults)
 	obs_data_set_default_int(defaults, OPT_MAX_SHUTDOWN_TIME_SEC, 30);
 	obs_data_set_default_string(defaults, OPT_BIND_IP, "default");
 	obs_data_set_default_bool(defaults, OPT_NEWSOCKETLOOP_ENABLED, false);
-	obs_data_set_default_bool(defaults, OPT_LOWLATENCY_ENABLED, false);
+	obs_data_set_default_bool(defaults, OPT_LOWLATENCY_ENABLED, true);
 }
 
 static obs_properties_t *rtmp_stream_properties(void *unused)
