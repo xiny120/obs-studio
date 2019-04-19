@@ -995,12 +995,20 @@ static inline void apply_interleaved_packet_offset(struct obs_output *output,
 	 * quite perfectly synced up in terms of system time (and there's
 	 * nothing we can really do about that), but it will always at least be
 	 * within a 23ish millisecond threshold (at least for AAC) */
+	
 	out->dts_usec = packet_dts_usec(out);
+	//if(out->type == OBS_ENCODER_VIDEO)
+	//	blog(LOG_WARNING, "%lld apply_interleaved_packet_offset type[%d] pts[%lld] dts[%lld] dts_usec[%lld]",
+	//	time(NULL),(int)out->type,out->pts, out->dts,out->dts_usec);
 }
 
 static inline bool has_higher_opposing_ts(struct obs_output *output,
 		struct encoder_packet *packet)
 {
+	return true;
+	///blog(LOG_WARNING, "%d has_higher_opposing_ts: packet->type[%d],haudio_ts[%d], hvideo_ts[%d], dts_usec[%d]",
+	//	(int)time(NULL),(int)packet->type,(int)output->highest_audio_ts,(int)output->highest_video_ts,
+	//	(int)packet->dts_usec);
 	if (packet->type == OBS_ENCODER_VIDEO)
 		return output->highest_audio_ts > packet->dts_usec;
 	else
@@ -1060,7 +1068,15 @@ static bool add_caption(struct obs_output *output, struct encoder_packet *out)
 static inline void send_interleaved(struct obs_output *output)
 {
 	struct encoder_packet out = output->interleaved_packets.array[0];
-	blog(LOG_WARNING, "%d send_interleaved[%d][%d]:%d %d", (int)time(NULL),(int)out.type,(int)output->interleaved_packets.num, (int)out.dts, (int)out.pts);
+	/*
+	blog(LOG_WARNING, "----------------- %d -----------------------", output->interleaved_packets.num);
+	for (int i = 0; i < output->interleaved_packets.num; i++) {
+		struct encoder_packet out1 = output->interleaved_packets.array[i];
+		blog(LOG_WARNING, "%d %d info type[%d] num[%d] dts[%d] pts[%d] idx[%d]",
+			i, (int)time(NULL), (int)out1.type, (int)output->interleaved_packets.num, (int)out1.dts, (int)out1.pts,out1.r);
+	}
+	blog(LOG_WARNING, "----------------------------------------");
+	*/
 
 	/* do not send an interleaved packet if there's no packet of the
 	 * opposing type of a higher timestamp in the interleave buffer.
@@ -1470,6 +1486,7 @@ static void interleave_packets(void *data, struct encoder_packet *packet)
 
 	/* when both video and audio have been received, we're ready
 	 * to start sending out packets (one at a time) */
+	/*
 	if (output->received_audio && output->received_video) {
 		if (!was_started) {
 			if (prune_interleaved_packets(output)) {
@@ -1481,8 +1498,8 @@ static void interleave_packets(void *data, struct encoder_packet *packet)
 		} else {
 			send_interleaved(output);
 		}
-	}
-
+	}*/
+	send_interleaved(output);
 	pthread_mutex_unlock(&output->interleaved_mutex);
 }
 

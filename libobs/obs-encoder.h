@@ -83,6 +83,7 @@ struct encoder_packet {
 
 	/** Encoder from which the track originated from */
 	obs_encoder_t         *encoder;
+	int	r;
 };
 
 /** Encoder input frame */

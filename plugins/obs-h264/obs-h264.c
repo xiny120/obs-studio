@@ -515,19 +515,21 @@ static void *obs_h264_create(obs_data_t *settings, obs_encoder_t *encoder){
 			video_t *video = obs_encoder_video(obsx264->encoder);
 			const struct video_output_info *voi = video_output_get_info(video);
 
-			obsx264->sSvcParam.fMaxFrameRate = voi->fps_num;
+			obsx264->sSvcParam.fMaxFrameRate = voi->fps_num / voi->fps_den;
 			//obsx264->sSvcParam.iNumRefFrame = 1;
 			obsx264->sSvcParam.iPicHeight = voi->height;
 			obsx264->sSvcParam.iPicWidth = voi->width;
-			obsx264->sSvcParam.iRCMode = RC_TIMESTAMP_MODE;// RC_QUALITY_MODE;
+			obsx264->sSvcParam.iRCMode = RC_QUALITY_MODE;
 			obsx264->sSvcParam.iTargetBitrate = (int)obs_data_get_int(settings, "bitrate");
 			obsx264->sSvcParam.iUsageType = SCREEN_CONTENT_REAL_TIME;
-			obsx264->sSvcParam.uiIntraPeriod = voi->fps_num * 10;
+			obsx264->sSvcParam.uiIntraPeriod = voi->fps_num * 20;
 			obsx264->sSvcParam.eSpsPpsIdStrategy = CONSTANT_ID;
 			obsx264->sSvcParam.iComplexityMode = LOW_COMPLEXITY;
 			obsx264->sSvcParam.iMultipleThreadIdc = 1;
 			obsx264->sSvcParam.bEnableLongTermReference = false;
-			obsx264->sSvcParam.sSpatialLayers[0].fFrameRate = voi->fps_num;
+			obsx264->sSvcParam.sSpatialLayers[0].fFrameRate = voi->fps_num / voi->fps_den;
+			obsx264->sSvcParam.sSpatialLayers[0].iSpatialBitrate = obsx264->sSvcParam.iTargetBitrate;
+			obsx264->sSvcParam.sSpatialLayers[0].iMaxSpatialBitrate = obsx264->sSvcParam.iTargetBitrate * 12 / 10;
 			obsx264->sSvcParam.sSpatialLayers[0].iVideoWidth = voi->width;
 			obsx264->sSvcParam.sSpatialLayers[0].iVideoHeight = voi->height;
 			obsx264->sSvcParam.sSpatialLayers[0].uiProfileIdc = PRO_BASELINE;
@@ -554,6 +556,7 @@ static void *obs_h264_create(obs_data_t *settings, obs_encoder_t *encoder){
 
 // data 表示参数 frame表示需要编码的原始数据。packet表示输出的编码码流。received_packet表示本帧数据是否有编码输出。
 static bool obs_h264_encode(void *data, struct encoder_frame *frame, struct encoder_packet *packet, bool *received_packet) {
+	packet->type = 99;
 	struct obs_h264 *obsx264 = data;
 	if (!frame || !packet || !received_packet)
 		return false;
@@ -577,7 +580,16 @@ static bool obs_h264_encode(void *data, struct encoder_frame *frame, struct enco
 	int iEncFrames = (*obsx264->context)->EncodeFrame(obsx264->context, &obsx264->sPic, &obsx264->sFbi);
 	//warn("%d EncodeFrame: in[%d] [%d] [%d]",(int)time(NULL),(int)frame->linesize[0],(int)iEncFrames,(int)obsx264->sFbi.iFrameSizeInBytes);
 	++obsx264->iFrameIdx;
+	packet->r = obsx264->iFrameIdx;
 	if (videoFrameTypeSkip == obsx264->sFbi.eFrameType) {
+
+		packet->data = 0;
+		packet->size = 0;
+		packet->type = OBS_ENCODER_VIDEO;
+		packet->pts = obsx264->sFbi.uiTimeStamp * voi->fps_num / voi->fps_den / 1000;// *voi->fps_num / 90000;
+		packet->dts = packet->pts;// pBS->DecodeTimeStamp * fps_num / 90000;
+		packet->keyframe = false;// obsx264->sFbi.eFrameType == videoFrameTypeIDR;// pic_out->b_keyframe != 0;
+		
 		return true;
 	}
 
@@ -603,12 +615,12 @@ static bool obs_h264_encode(void *data, struct encoder_frame *frame, struct enco
 						packet->data = obsx264->packet_data.array;
 						packet->size = obsx264->packet_data.num;
 						packet->type = OBS_ENCODER_VIDEO;
-						packet->pts = obsx264->sFbi.uiTimeStamp * voi->fps_num / 1000;// *voi->fps_num / 90000;
+						packet->pts = obsx264->sFbi.uiTimeStamp * voi->fps_num / voi->fps_den / 1000;// *voi->fps_num / 90000;
 						packet->dts = packet->pts;// pBS->DecodeTimeStamp * fps_num / 90000;
 						packet->keyframe = obsx264->sFbi.eFrameType == videoFrameTypeIDR;// pic_out->b_keyframe != 0;
-						warn("%d h264码流长度:%d[%d] s[%d] d[%d]\r\n",
-							(int)time(NULL), (int)packet->size,(int)obsx264->sFbi.eFrameType,
-							(int)frame->pts, (int)packet->pts);
+						//warn("%d h264码流长度:%d[%d] s[%d] d[%d]\r\n",
+						//	(int)time(NULL), (int)packet->size,(int)obsx264->sFbi.eFrameType,
+						//	(int)frame->pts, (int)packet->pts);
 					//	fwrite(pLayerBsInfo->pBsBuf, 1, iLayerSize , obsx264->pFpBs); // write pure bit stream into file
 					}
 					else { //multi bs file write
@@ -621,7 +633,7 @@ static bool obs_h264_encode(void *data, struct encoder_frame *frame, struct enco
 					obsx264->extra_data = header.array;
 					obsx264->extra_data_size = header.num;
 					//fwrite(pLayerBsInfo->pBsBuf, 1, iLayerSize, obsx264->pFpBs);
-					warn("%d NON_VIDEO_CODING_LAYER %d",(int)(time(NULL)),(int)header.num);
+					//warn("%d NON_VIDEO_CODING_LAYER %d",(int)(time(NULL)),(int)header.num);
 				}
 				iFrameSize += iLayerSize;
 			}

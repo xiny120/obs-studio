@@ -39,7 +39,7 @@ static inline void make_video_info(struct video_output_info *vi,
 	vi->height  = ovi->output_height;
 	vi->range   = ovi->range;
 	vi->colorspace = ovi->colorspace;
-	vi->cache_size = 2;
+	vi->cache_size = 1;
 }
 
 #define PIXEL_SIZE 4

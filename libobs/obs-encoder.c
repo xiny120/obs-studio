@@ -723,8 +723,11 @@ void obs_encoder_set_video(obs_encoder_t *encoder, video_t *video)
 	voi = video_output_get_info(video);
 
 	encoder->media        = video;
-	encoder->timebase_num = voi->fps_den;
-	encoder->timebase_den = voi->fps_num;
+	//encoder->timebase_num = voi->fps_den;
+	//encoder->timebase_den = voi->fps_num;
+	encoder->timebase_num = voi->fps_num;
+	encoder->timebase_den = voi->fps_den;
+
 }
 
 void obs_encoder_set_audio(obs_encoder_t *encoder, audio_t *audio)
@@ -895,8 +898,15 @@ void do_encode(struct obs_encoder *encoder, struct encoder_frame *frame)
 	profile_start(encoder->profile_encoder_encode_name);
 	success = encoder->info.encode(encoder->context.data, frame, &pkt,
 			&received);
+
 	profile_end(encoder->profile_encoder_encode_name);
-	send_off_encoder_packet(encoder, success, received, &pkt);
+	if (pkt.type != 99) {
+		send_off_encoder_packet(encoder, success, received, &pkt);
+	}
+	else {
+		blog(LOG_WARNING, "%lld do_encode type[%d] pts[%lld] dts[%lld] dts_usec[%lld]",
+			time(NULL), (int)pkt.type, pkt.pts, pkt.dts, pkt.dts_usec);
+	}
 
 	profile_end(do_encode_name);
 }
