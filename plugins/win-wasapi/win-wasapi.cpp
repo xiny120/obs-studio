@@ -260,8 +260,14 @@ void WASAPISource::InitFormat(WAVEFORMATEX *wfex)
 		WAVEFORMATEXTENSIBLE *ext = (WAVEFORMATEXTENSIBLE*)wfex;
 		layout = ext->dwChannelMask;
 	}
-
+	// 8000 12000 16000 24000 32000 48000
 	/* WASAPI is always float */
+	//wfex.nChannels = _playChannelsPrioList[chan];
+	//wfex->wFormatTag = WAVE_FORMAT_PCM;
+	//wfex->nSamplesPerSec = 8000;
+	//wfex->nBlockAlign = wfex->nChannels * wfex->wBitsPerSample / 8;
+	//wfex->nAvgBytesPerSec = wfex->nSamplesPerSec * wfex->nBlockAlign;
+
 	sampleRate = wfex->nSamplesPerSec;
 	format     = AUDIO_FORMAT_FLOAT;
 	speakers   = ConvertSpeakerLayout(layout, wfex->nChannels);

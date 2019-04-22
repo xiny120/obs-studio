@@ -2137,10 +2137,14 @@ void OBSBasicSettings::LoadAudioSettings()
 		str = "48khz";
 	else 	if (sampleRate == 8000)
 		str = "8000hz";
-	else	if (sampleRate == 11025)
-		str = "11025hz";
+	else	if (sampleRate == 12000)
+		str = "12000hz";
 	else	if (sampleRate == 16000)
 		str = "16000hz";
+	else	if (sampleRate == 24000)
+		str = "24000hz";
+	else	if (sampleRate == 32000)
+		str = "32000hz";
 	else	if (sampleRate == 22050)
 		str = "22050hz";
 	else
@@ -3178,10 +3182,14 @@ void OBSBasicSettings::SaveAudioSettings()
 		sampleRate = 48000;
 	else 	if (sampleRateStr == "8000hz")
 		sampleRate = 8000;
-	else 	if (sampleRateStr == "11025hz")
-		sampleRate = 11025;
+	else 	if (sampleRateStr == "12000hz")
+		sampleRate = 12000;
 	else 	if (sampleRateStr == "16000hz")
 		sampleRate = 16000;
+	else 	if (sampleRateStr == "24000hz")
+		sampleRate = 24000;
+	else 	if (sampleRateStr == "32000hz")
+		sampleRate = 32000;
 	else 	if (sampleRateStr == "22050hz")
 		sampleRate = 22050;
 	if (WidgetChanged(ui->sampleRate))

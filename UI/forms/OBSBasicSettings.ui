@@ -145,7 +145,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>801</width>
+              <width>583</width>
               <height>897</height>
              </rect>
             </property>
@@ -3604,19 +3604,34 @@
          <item row="0" column="1">
           <widget class="QComboBox" name="sampleRate">
            <property name="currentText">
-            <string notr="true">11025hz</string>
+            <string notr="true">8000hz</string>
            </property>
            <property name="currentIndex">
             <number>0</number>
            </property>
            <item>
             <property name="text">
-             <string>11025hz</string>
+             <string>8000hz</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>22050hz</string>
+             <string>12000hz</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>16000hz</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>24000hz</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>32000hz</string>
             </property>
            </item>
            <item>
@@ -4269,7 +4284,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>803</width>
+              <width>657</width>
               <height>822</height>
              </rect>
             </property>
