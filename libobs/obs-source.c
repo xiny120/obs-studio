@@ -2629,6 +2629,7 @@ static void process_audio_balancing(struct obs_source *source, uint32_t frames,
 static void process_audio(obs_source_t *source,
 		const struct obs_source_audio *audio)
 {
+	assert(0);
 	uint32_t frames = audio->frames;
 	bool mono_output;
 
