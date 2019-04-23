@@ -269,7 +269,7 @@ void WASAPISource::InitFormat(WAVEFORMATEX *wfex)
 	//wfex->nAvgBytesPerSec = wfex->nSamplesPerSec * wfex->nBlockAlign;
 
 	sampleRate = wfex->nSamplesPerSec;
-	format     = AUDIO_FORMAT_FLOAT;
+	format = AUDIO_FORMAT_FLOAT; KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 	speakers   = ConvertSpeakerLayout(layout, wfex->nChannels);
 }
 
