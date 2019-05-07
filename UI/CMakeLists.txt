@@ -179,6 +179,7 @@ set(obs_SOURCES
 	../deps/json11/json11.cpp
 	obs-app.cpp
 	api-interface.cpp
+	DlgRooms.cpp
 	DlgLogin.cpp
 	window-basic-main.cpp
 	window-basic-stats.cpp
@@ -235,6 +236,7 @@ set(obs_HEADERS
 	../deps/json11/json11.hpp
 	obs-app.hpp
 	platform.hpp
+	DlgRooms.h
 	DlgLogin.h
 	window-main.hpp
 	window-basic-main.hpp
@@ -302,6 +304,7 @@ set(obs_UI
 	forms/OBSUpdate.ui
 	forms/OBSRemux.ui
 	forms/DlgLogin.ui
+	forms/DlgRooms.ui
 	forms/OBSAbout.ui)
 
 set(obs_QRC

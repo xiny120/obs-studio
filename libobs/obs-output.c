@@ -624,12 +624,13 @@ void obs_output_set_video_encoder(obs_output_t *output, obs_encoder_t *encoder)
 				output->scaled_width, output->scaled_height);
 }
 
-void obs_output_set_auth(obs_output_t *output,const char* sid, const char* token)
+void obs_output_set_auth(obs_output_t *output,const char* sid, const char* token, const char* roomid)
 {
 	if (!obs_output_valid(output, "obs_output_set_auth"))
 		return;
 	strcpy(output->sid, sid);
 	strcpy(output->token, token);
+	strcpy(output->roomid, roomid);
 }
 
 void obs_output_set_audio_encoder(obs_output_t *output, obs_encoder_t *encoder,

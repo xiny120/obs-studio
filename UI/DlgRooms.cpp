@@ -1,4 +1,4 @@
-#include "DlgLogin.h"
+#include "DlgRooms.h"
 #include <QCryptographicHash>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
@@ -12,17 +12,17 @@
 #include "obs-app.hpp"
 
 
-DlgLogin::DlgLogin(QWidget *parent): QDialog(parent){
+DlgRooms::DlgRooms(QWidget *parent): QDialog(parent){
 	ui.setupUi(this);
 	//connect(ui.okButton, SIGNAL(clicked()), this, SLOT(ClickButton()));
 }
 
-DlgLogin::~DlgLogin(){
+DlgRooms::~DlgRooms(){
 }
 
-void DlgLogin::myClick() {
-	QString un = ui.ltUserName->text();
-	QString pwd = ui.lePassword->text();
+void DlgRooms::myClick() {
+	QString un = "";// ui.ltUserName->text();
+	QString pwd = "";// ui.lePassword->text();
 	QString md5;
 	QByteArray ba, bb;
 	QCryptographicHash md(QCryptographicHash::Md5);
@@ -74,7 +74,7 @@ void DlgLogin::myClick() {
 
 }
 
-QJsonObject DlgLogin::UrlRequestPost(const QString url, const QString data)
+QJsonObject DlgRooms::UrlRequestPost(const QString url, const QString data)
 {
 	QJsonObject object;
 	QNetworkAccessManager qnam;

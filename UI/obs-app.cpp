@@ -42,6 +42,7 @@
 #include "crash-report.hpp"
 #include "platform.hpp"
 #include "DlgLogin.h"
+#include "DlgRooms.h"
 
 #include <fstream>
 
@@ -1744,6 +1745,10 @@ run:
 
 		DlgLogin w;
 		if (w.exec() == QDialog::Rejected)
+			return 0;
+
+		DlgRooms ws;
+		if (ws.exec() == QDialog::Rejected)
 			return 0;
 
 		if (!program.OBSInit())

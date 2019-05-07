@@ -53,6 +53,7 @@ public:
 	QString UserName;
 	QString SessionId;
 	QString Token;
+	QString RoomId;
 };
 
 class OBSTranslator : public QTranslator {

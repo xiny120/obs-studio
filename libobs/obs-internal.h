@@ -920,6 +920,7 @@ struct obs_output {
 	char                            *last_error_message;
 	char sid[64];
 	char token[64];
+	char roomid[64];
 };
 
 static inline void do_output_signal(struct obs_output *output,
