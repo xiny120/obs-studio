@@ -11,6 +11,8 @@ public slots:
 	void myClick();
 protected:
 	void showEvent(QShowEvent *event);
+	bool event(QEvent *event);
+	
 public:
 	QJsonObject UrlRequestPost(const QString url, const QString data);
 	DlgRooms(QWidget *parent = Q_NULLPTR);

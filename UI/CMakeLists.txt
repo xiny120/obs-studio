@@ -179,6 +179,7 @@ set(obs_SOURCES
 	../deps/json11/json11.cpp
 	obs-app.cpp
 	api-interface.cpp
+	DlgInitEvent.cpp
 	DlgRooms.cpp
 	DlgLogin.cpp
 	window-basic-main.cpp
@@ -236,6 +237,7 @@ set(obs_HEADERS
 	../deps/json11/json11.hpp
 	obs-app.hpp
 	platform.hpp
+	DlgInitEvent.h
 	DlgRooms.h
 	DlgLogin.h
 	window-main.hpp

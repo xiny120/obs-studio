@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QMessageBox>
 #include "obs-app.hpp"
+#include "DlgInitEvent.h"
 
 
 DlgRooms::DlgRooms(QWidget *parent): QDialog(parent){
@@ -21,9 +22,18 @@ DlgRooms::~DlgRooms(){
 }
 
 void DlgRooms::showEvent(QShowEvent *event) {
-	os_sleep_ms(1000 * 3);
-	ui.listRooms->addItem("hello1");
-	ui.listRooms->addItem("hello2");
+	// https://blog.csdn.net/y396397735/article/details/82314458
+	qApp->postEvent(this, new DlgInitEvent());
+
+}
+
+bool DlgRooms::event(QEvent *e){
+	if (e->type() == DlgInitEvent::eventType) {
+		os_sleep_ms(1000 * 3);
+		ui.listRooms->addItem("hello1");
+		ui.listRooms->addItem("hello2");
+	}
+	return QDialog::event(e);
 }
 
 void DlgRooms::myClick() {
