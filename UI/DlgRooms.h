@@ -9,7 +9,8 @@ class DlgRooms : public QDialog
 
 public slots:
 	void myClick();
-
+protected:
+	void showEvent(QShowEvent *event);
 public:
 	QJsonObject UrlRequestPost(const QString url, const QString data);
 	DlgRooms(QWidget *parent = Q_NULLPTR);

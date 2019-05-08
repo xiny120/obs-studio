@@ -14,10 +14,16 @@
 
 DlgRooms::DlgRooms(QWidget *parent): QDialog(parent){
 	ui.setupUi(this);
-	//connect(ui.okButton, SIGNAL(clicked()), this, SLOT(ClickButton()));
+	
 }
 
 DlgRooms::~DlgRooms(){
+}
+
+void DlgRooms::showEvent(QShowEvent *event) {
+	os_sleep_ms(1000 * 3);
+	ui.listRooms->addItem("hello1");
+	ui.listRooms->addItem("hello2");
 }
 
 void DlgRooms::myClick() {
