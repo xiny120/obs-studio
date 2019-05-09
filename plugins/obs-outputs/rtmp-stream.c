@@ -804,10 +804,10 @@ static int try_connect(struct rtmp_stream *stream)
 
 	obs_output_t* op = stream->output;
 	op->sid;
-
-	info("Connecting to RTMP URL %s %s %s %s...", stream->path.array,op->sid,op->token,op->roomid);
+	// stream->path.array
+	info("Connecting to RTMP URL %s %s %s %s...", op->pushuri,op->sid,op->token,op->roomid);
 	char uri[1024] = { 0 };
-	sprintf(uri, "%s?sessionid=%s&token=%s&roomid=%s", stream->path.array, op->sid, op->token,op->roomid);
+	sprintf(uri, "%s?sessionid=%s&token=%s&roomid=%s", op->pushuri, op->sid, op->token,op->roomid);
 
 	dstr_free(&stream->path);
 	dstr_init_copy(&stream->path, uri);

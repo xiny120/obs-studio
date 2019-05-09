@@ -179,6 +179,7 @@ set(obs_SOURCES
 	../deps/json11/json11.cpp
 	obs-app.cpp
 	api-interface.cpp
+	BusyIndicator.cpp
 	DlgInitEvent.cpp
 	DlgRooms.cpp
 	DlgLogin.cpp
@@ -237,6 +238,7 @@ set(obs_HEADERS
 	../deps/json11/json11.hpp
 	obs-app.hpp
 	platform.hpp
+	BusyIndicator.h
 	DlgInitEvent.h
 	DlgRooms.h
 	DlgLogin.h
@@ -307,6 +309,7 @@ set(obs_UI
 	forms/OBSRemux.ui
 	forms/DlgLogin.ui
 	forms/DlgRooms.ui
+	forms/BusyIndicator.ui
 	forms/OBSAbout.ui)
 
 set(obs_QRC

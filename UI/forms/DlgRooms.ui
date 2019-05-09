@@ -11,11 +11,15 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>主播房间列表</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QListWidget" name="listRooms"/>
+    <widget class="QListWidget" name="listRooms">
+     <property name="viewMode">
+      <enum>QListView::ListMode</enum>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="ok_cancel">
@@ -68,22 +72,6 @@
  <resources/>
  <connections>
   <connection>
-   <sender>okButton</sender>
-   <signal>clicked()</signal>
-   <receiver>DlgRooms</receiver>
-   <slot>myClick()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>278</x>
-     <y>253</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>96</x>
-     <y>254</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>cancelButton</sender>
    <signal>clicked()</signal>
    <receiver>DlgRooms</receiver>
@@ -96,6 +84,22 @@
     <hint type="destinationlabel">
      <x>179</x>
      <y>282</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>okButton</sender>
+   <signal>clicked()</signal>
+   <receiver>DlgRooms</receiver>
+   <slot>myClick()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>278</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>96</x>
+     <y>254</y>
     </hint>
    </hints>
   </connection>

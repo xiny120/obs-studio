@@ -921,6 +921,7 @@ struct obs_output {
 	char sid[64];
 	char token[64];
 	char roomid[64];
+	char pushuri[1024];
 };
 
 static inline void do_output_signal(struct obs_output *output,

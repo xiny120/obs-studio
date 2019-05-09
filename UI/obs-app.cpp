@@ -1743,9 +1743,9 @@ run:
 			blog(LOG_INFO, "Command Line Arguments: %s", stor.str().c_str());
 		}
 
-		//DlgLogin w;
-		//if (w.exec() == QDialog::Rejected)
-		//	return 0;
+		DlgLogin w;
+		if (w.exec() == QDialog::Rejected)
+			return 0;
 
 		DlgRooms ws;
 		if (ws.exec() == QDialog::Rejected)

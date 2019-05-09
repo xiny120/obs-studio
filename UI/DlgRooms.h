@@ -7,6 +7,10 @@ class DlgRooms : public QDialog
 {
 	Q_OBJECT
 
+signals:
+	// 线程执行结束后发送此信号
+	void signalRunOver();
+
 public slots:
 	void myClick();
 protected:

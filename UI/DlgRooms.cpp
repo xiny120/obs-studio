@@ -9,12 +9,18 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <thread>
 #include "obs-app.hpp"
 #include "DlgInitEvent.h"
+#include "BusyIndicator.h"
 
 
 DlgRooms::DlgRooms(QWidget *parent): QDialog(parent){
 	ui.setupUi(this);
+	connect(ui.listRooms, &QListWidget::currentRowChanged, [=](int curindex) {
+		qDebug() << curindex << endl;
+	});
+	//connect(ui.okButton, SIGNAL(clicked()), this, SLOT(myClick()));
 	
 }
 
@@ -29,97 +35,94 @@ void DlgRooms::showEvent(QShowEvent *event) {
 
 bool DlgRooms::event(QEvent *e){
 	if (e->type() == DlgInitEvent::eventType) {
-		os_sleep_ms(1000 * 3);
-		ui.listRooms->addItem("hello1");
-		ui.listRooms->addItem("hello2");
+		BusyIndicator bi(this);// = new BusyIndicator(this);
+		bi.show();
+		bool runResult{ false };
+		QEventLoop loop;
+		
+		connect(this, &DlgRooms::signalRunOver, &loop, &QEventLoop::quit);
+		std::thread testThread([&]{
+
+			QJsonObject json;
+			json.insert("action", "pushroomlist");
+			json.insert("mster-token", App()->ui.SessionId);
+			QJsonDocument document;
+			document.setObject(json);
+			QByteArray byteArray = document.toJson(QJsonDocument::Compact);
+			QString strJson(byteArray);
+
+			QJsonObject  object = UrlRequestPost("http://www.gwgz.com:8091/api/1.00/private", strJson);
+			if (object.contains("status")) {  // 包含指定的 key
+				QJsonValue value = object.value("status");  // 获取指定 key 对应的 value
+				if (value.isDouble()) {  // 判断 value 是否为字符串
+					int status = value.toInt(1);
+					if (status == 0 && (object.contains("roomlist"))) {
+						QJsonArray rooms = object.value("roomlist").toArray();
+						QJsonArray::iterator iter;
+						for (iter = rooms.begin(); iter != rooms.end(); iter++) {
+							object = (*iter).toObject();
+							qDebug() << object;
+							QString Id = object.value("Id").toString();
+							QString Title = object.value("Title").toString();
+							QString Icon = object.value("Icon").toString();
+							QString PushUri = object.value("PushUri").toString();
+							QListWidgetItem* qwi = new QListWidgetItem();
+							qwi->setText(Title);
+							qwi->setData(Qt::UserRole, Id);
+							qwi->setData(Qt::UserRole + 1, PushUri);
+							ui.listRooms->addItem(qwi);
+
+						}
+						
+					}
+				}
+			}
+			runResult = true;
+			emit signalRunOver();
+		});
+		testThread.detach();
+		loop.exec();
+		if (!runResult){
+		}
 	}
 	return QDialog::event(e);
 }
 
 void DlgRooms::myClick() {
-	QString un = "";// ui.ltUserName->text();
-	QString pwd = "";// ui.lePassword->text();
-	QString md5;
-	QByteArray ba, bb;
-	QCryptographicHash md(QCryptographicHash::Md5);
-	ba.append(pwd);
-	md.addData(ba);
-	bb = md.result();
-	md5.append(bb.toHex());
-	md5 = md5.mid(8, 16);
-
-	QJsonObject json;
-	json.insert("action", "auth");
-	json.insert("account", un);
-	json.insert("password", md5);
-	QJsonDocument document;
-	document.setObject(json);
-	QByteArray byteArray = document.toJson(QJsonDocument::Compact);
-	QString strJson(byteArray);
-
-	QJsonObject  object = UrlRequestPost("http://www.gwgz.com:8091/api/1.00/public", strJson);
-	if (object.contains("status")) {  // 包含指定的 key
-		QJsonValue value = object.value("status");  // 获取指定 key 对应的 value
-		if (value.isDouble()) {  // 判断 value 是否为字符串
-			int status = value.toInt(1);
-			if (status == 0) {
-				if (object.contains("userinfo")) {
-					value = object.value("userinfo");
-					if (value.isObject()) {
-						object = value.toObject();
-						if (object.contains("UserId")) {
-							int UserId = object.value("UserId").toInt(0);
-							if (UserId != 0) {
-								this->accept();
-								App()->ui.UserName = object.value("UserName").toString();
-								App()->ui.SessionId = object.value("SessionId").toString();
-								App()->ui.Token = object.value("Token").toString();
-								return;
-							}
-							else {
-							}
-						}
-					}
-				}
-			}
-
-		}
+	QListWidgetItem * pItem = ui.listRooms->currentItem();
+	if (pItem == nullptr) {
+		QMessageBox box(QMessageBox::Warning, "", "请选择一个房间进行直播！");
+		box.exec();
+		return;
 	}
-	QMessageBox box(QMessageBox::Warning, "", "用户名密码错误！");
-	box.exec();
-
+	QString roomid = pItem->data(Qt::UserRole).toString();
+	QString PushUri = pItem->data(Qt::UserRole + 1).toString();
+	App()->ui.RoomId = roomid;
+	App()->ui.PushUri = PushUri;
+	this->accept();
 }
 
-QJsonObject DlgRooms::UrlRequestPost(const QString url, const QString data)
-{
+QJsonObject DlgRooms::UrlRequestPost(const QString url, const QString data){
 	QJsonObject object;
 	QNetworkAccessManager qnam;
 	const QUrl aurl(url);
 	QNetworkRequest qnr(aurl);
 	qnr.setRawHeader("Content-Type", "application/json;charset=utf8");
+	qnr.setRawHeader("mster-token", App()->ui.SessionId.toUtf8());
 	QNetworkReply *reply = qnam.post(qnr, data.toLocal8Bit());
-
 	QEventLoop eventloop;
 	connect(reply, SIGNAL(finished()), &eventloop, SLOT(quit()));
 	eventloop.exec(QEventLoop::ExcludeUserInputEvents);
-
 	QTextCodec *codec = QTextCodec::codecForName("utf8");
 	QByteArray  buf = reply->readAll();
-	//QString replyData = codec->toUnicode(reply->readAll());
-	//if (replyData.length > 0) {
-
-		QJsonParseError jsonError;
-		QJsonDocument doucment = QJsonDocument::fromJson(buf, &jsonError);  // 转化为 JSON 文档
-		if (!doucment.isNull() && (jsonError.error == QJsonParseError::NoError)) {  // 解析未发生错误
-			if (doucment.isObject()) { // JSON 文档为对象
-				object = doucment.object();  // 转化为对象
-			}
+	QJsonParseError jsonError;
+	QJsonDocument doucment = QJsonDocument::fromJson(buf, &jsonError);  // 转化为 JSON 文档
+	if (!doucment.isNull() && (jsonError.error == QJsonParseError::NoError)) {  // 解析未发生错误
+		if (doucment.isObject()) { // JSON 文档为对象
+			object = doucment.object();  // 转化为对象
 		}
-	//}
-
-	
+	}
 	reply->deleteLater();
 	reply = 0;
-
 	return object;
 }
