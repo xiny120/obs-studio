@@ -55,6 +55,7 @@ public:
 	QString Token;
 	QString RoomId;
 	QString PushUri;
+	QString Key;
 };
 
 class OBSTranslator : public QTranslator {

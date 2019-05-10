@@ -16,18 +16,54 @@ bool cmp(const QJsonValue& o1 , const QJsonValue& o2 ) {
 	QJsonObject o11, o22;
 	o11 = o1.toObject();
 	o22 = o2.toObject();
-	qDebug() << o11 << o22;
+	//qDebug() << o11 << o22;
 	//o1.isBool();
 	//o2.isBool();
 	id1 = o11.value("ID").toInt(0);
 	id2 = o22.value("ID").toInt(0);
-	qDebug() << id1 << id2;
+	//qDebug() << id1 << id2;
 	return id1 < id2;
 }
 
 DlgLogin::DlgLogin(QWidget *parent): QDialog(parent){
 	ui.setupUi(this);
 	//connect(ui.okButton, SIGNAL(clicked()), this, SLOT(ClickButton()));
+
+	QJsonArray array1;
+	QVector<QString>v_Name;
+	QVector<int>v_Num;
+	QJsonObject obj1;
+
+	v_Name.append("fly");
+	v_Name.append("zoom");
+	v_Name.append("apple");
+	v_Name.append("draw");
+
+	v_Num.append(4);
+	v_Num.append(1);
+	v_Num.append(9);
+	v_Num.append(7);
+
+	for (int i = 0; i < 4; i++)
+	{
+		obj1.insert("Name", v_Name[i]);
+		obj1.insert("Num", v_Num[i]);
+		array1.append(obj1);
+	}
+	
+
+	QJsonArray::iterator iter;
+	qDebug() << array1;
+	for (iter = array1.begin(); iter != array1.end(); iter++)
+	{
+		obj1 = (*iter).toObject();
+		qDebug() << obj1;
+	}
+
+
+
+
+
 
 	QJsonArray array;
 	QJsonObject obj;
@@ -43,7 +79,7 @@ DlgLogin::DlgLogin(QWidget *parent): QDialog(parent){
 	obj.insert("ID", QJsonValue(1));
 	array.append(obj);
 	qDebug() << array;
-	qSort(array.begin(), array.end(), cmp);
+	std::sort(array.begin(), array.end(), cmp);
 	qDebug() << array;
 }
 
@@ -114,7 +150,7 @@ QJsonObject DlgLogin::UrlRequestPost(const QString url, const QString data){
 	connect(reply, SIGNAL(finished()), &eventloop, SLOT(quit()));
 	eventloop.exec(QEventLoop::ExcludeUserInputEvents);
 
-	QTextCodec *codec = QTextCodec::codecForName("utf8");
+	//QTextCodec *codec = QTextCodec::codecForName("utf8");
 	QByteArray  buf = reply->readAll();
 	QJsonParseError jsonError;
 	QJsonDocument doucment = QJsonDocument::fromJson(buf, &jsonError);  // 转化为 JSON 文档

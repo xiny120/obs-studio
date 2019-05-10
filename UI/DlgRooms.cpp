@@ -52,6 +52,7 @@ bool DlgRooms::event(QEvent *e){
 			QString strJson(byteArray);
 
 			QJsonObject  object = UrlRequestPost("http://www.gwgz.com:8091/api/1.00/private", strJson);
+			qDebug() << object;
 			if (object.contains("status")) {  // 包含指定的 key
 				QJsonValue value = object.value("status");  // 获取指定 key 对应的 value
 				if (value.isDouble()) {  // 判断 value 是否为字符串
@@ -66,10 +67,12 @@ bool DlgRooms::event(QEvent *e){
 							QString Title = object.value("Title").toString();
 							QString Icon = object.value("Icon").toString();
 							QString PushUri = object.value("PushUri").toString();
+							QString Key = object.value("VStream").toString();
 							QListWidgetItem* qwi = new QListWidgetItem();
 							qwi->setText(Title);
 							qwi->setData(Qt::UserRole, Id);
 							qwi->setData(Qt::UserRole + 1, PushUri);
+							qwi->setData(Qt::UserRole + 2, Key);
 							ui.listRooms->addItem(qwi);
 
 						}
@@ -97,8 +100,10 @@ void DlgRooms::myClick() {
 	}
 	QString roomid = pItem->data(Qt::UserRole).toString();
 	QString PushUri = pItem->data(Qt::UserRole + 1).toString();
+	QString key = pItem->data(Qt::UserRole + 2).toString();
 	App()->ui.RoomId = roomid;
 	App()->ui.PushUri = PushUri;
+	App()->ui.Key = key;
 	this->accept();
 }
 

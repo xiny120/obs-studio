@@ -922,6 +922,7 @@ struct obs_output {
 	char token[64];
 	char roomid[64];
 	char pushuri[1024];
+	char key[64];// also called stream in srs app/stream
 };
 
 static inline void do_output_signal(struct obs_output *output,

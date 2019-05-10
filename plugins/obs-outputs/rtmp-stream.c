@@ -811,6 +811,8 @@ static int try_connect(struct rtmp_stream *stream)
 
 	dstr_free(&stream->path);
 	dstr_init_copy(&stream->path, uri);
+	dstr_free(&stream->key);
+	dstr_init_copy(&stream->key, op->key);
 
 	RTMP_Init(&stream->rtmp);
 	if (!RTMP_SetupURL(&stream->rtmp, stream->path.array))

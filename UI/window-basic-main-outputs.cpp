@@ -1553,9 +1553,10 @@ bool AdvancedOutput::StartStreaming(obs_service_t *service)
 	string token = App()->ui.Token.toStdString();
 	string roomid = App()->ui.RoomId.toStdString();
 	string pushuri = App()->ui.PushUri.toStdString();
+	string key = App()->ui.Key.toStdString();
 	//strncpy(sid, .c_str, 60);
 	//strncpy(token, App()->ui.Token.toStdString().c_str, 60);
-	obs_output_set_auth(streamOutput,sid.c_str(),token.c_str(),roomid.c_str(), pushuri.c_str());
+	obs_output_set_auth(streamOutput,sid.c_str(),token.c_str(),roomid.c_str(), pushuri.c_str(),key.c_str());
 
 	/* --------------------- */
 
