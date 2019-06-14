@@ -34,6 +34,9 @@
 #include <QGuiApplication>
 #include <QProxyStyle>
 #include <QScreen>
+#include <QFile>
+#include <QtMultimedia/QAudioFormat>
+#include <QtMultimedia/QAudioOutput>
 
 #include "qt-wrappers.hpp"
 #include "obs-app.hpp"
@@ -2207,6 +2210,30 @@ static void upgrade_settings(void)
 
 int main(int argc, char *argv[])
 {
+
+
+	QFile inputFile;
+	inputFile.setFileName("d:/test.pcm");
+	inputFile.open(QIODevice::ReadOnly);
+
+	//设置采样格式
+	QAudioFormat audioFormat;
+	//设置采样率
+	audioFormat.setSampleRate(22050);
+	//设置通道数
+	audioFormat.setChannelCount(2);
+	//设置采样大小，一般为8位或16位
+	audioFormat.setSampleSize(16);
+	//设置编码方式
+	audioFormat.setCodec("audio/pcm");
+	//设置字节序
+	audioFormat.setByteOrder(QAudioFormat::LittleEndian);
+	//设置样本数据类型
+	audioFormat.setSampleType(QAudioFormat::UnSignedInt);
+
+	QAudioOutput *audio = new QAudioOutput(audioFormat, 0);
+	audio->start(&inputFile);
+
 #ifndef _WIN32
 	signal(SIGPIPE, SIG_IGN);
 #endif

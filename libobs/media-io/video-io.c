@@ -485,7 +485,7 @@ void video_output_unlock_frame(video_t *video)
 	pthread_mutex_lock(&video->data_mutex);
 
 	video->available_frames--;
-	blog(LOG_WARNING,"%lld available_frames:%lld",time(NULL),(int64_t)video->available_frames);
+	//blog(LOG_WARNING,"%lld available_frames:%lld",time(NULL),(int64_t)video->available_frames);
 	os_sem_post(video->update_semaphore);
 
 	pthread_mutex_unlock(&video->data_mutex);

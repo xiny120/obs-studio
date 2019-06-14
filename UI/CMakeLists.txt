@@ -337,6 +337,7 @@ if(WIN32)
 endif()
 
 find_package(Qt5Network REQUIRED)
+find_package(Qt5Multimedia REQUIRED)
 
 target_link_libraries(obs
 	libobs

@@ -63,11 +63,15 @@ bool DlgRooms::event(QEvent *e){
 						for (iter = rooms.begin(); iter != rooms.end(); iter++) {
 							object = (*iter).toObject();
 							qDebug() << object;
-							QString Id = object.value("Id").toString();
-							QString Title = object.value("Title").toString();
-							QString Icon = object.value("Icon").toString();
-							QString PushUri = object.value("PushUri").toString();
-							QString Key = object.value("VStream").toString();
+							int Id = _int64(object.value("roomid").toDouble());
+							QString Title = object.value("title").toString();
+							QString Icon = object.value("icon").toString();
+							QString PushUri = "rtmp://" + object.value("vhost").toString()
+								+ ":" + QString::number(int(object.value("vport").toDouble()))
+								+ "/" + object.value("vapp").toString()
+								+ "";// +object.value("vstream").toString();
+							qDebug() << PushUri;
+							QString Key = object.value("vstream").toString();
 							QListWidgetItem* qwi = new QListWidgetItem();
 							qwi->setText(Title);
 							qwi->setData(Qt::UserRole, Id);
@@ -98,7 +102,7 @@ void DlgRooms::myClick() {
 		box.exec();
 		return;
 	}
-	QString roomid = pItem->data(Qt::UserRole).toString();
+	QString roomid = QString::number(pItem->data(Qt::UserRole).toInt());
 	QString PushUri = pItem->data(Qt::UserRole + 1).toString();
 	QString key = pItem->data(Qt::UserRole + 2).toString();
 	App()->ui.RoomId = roomid;

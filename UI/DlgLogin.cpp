@@ -11,6 +11,8 @@
 #include <QMessageBox>
 #include "obs-app.hpp"
 
+
+
 bool cmp(const QJsonValue& o1 , const QJsonValue& o2 ) {
 	int id1, id2;
 	QJsonObject o11, o22;
@@ -28,6 +30,12 @@ bool cmp(const QJsonValue& o1 , const QJsonValue& o2 ) {
 DlgLogin::DlgLogin(QWidget *parent): QDialog(parent){
 	ui.setupUi(this);
 	//connect(ui.okButton, SIGNAL(clicked()), this, SLOT(ClickButton()));
+
+
+
+
+
+
 
 	QJsonArray array1;
 	QVector<QString>v_Name;
@@ -116,12 +124,12 @@ void DlgLogin::myClick() {
 				value = object.value("userinfo");
 				if (value.isObject()) {
 					object = value.toObject();
-					if (object.contains("UserId")) {
-						int UserId = object.value("UserId").toInt(0);
+					if (object.contains("UserID")) {
+						int UserId = object.value("UserID").toInt(0);
 						if (UserId != 0) {
 							this->accept();
 							App()->ui.UserName = object.value("UserName").toString();
-							App()->ui.SessionId = object.value("SessionId").toString();
+							App()->ui.SessionId = object.value("SessionID").toString();
 							App()->ui.Token = object.value("Token").toString();
 							return;
 						}
